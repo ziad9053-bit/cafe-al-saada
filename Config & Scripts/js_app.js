@@ -1,3 +1,4 @@
+console.log("تم تحميل ملف js_app.js بنجاح!");
 // Config & Scripts/js_app.js
 
 window.startOrder = async function(tableNumber) {

@@ -18,7 +18,9 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <script src="../Config & Scripts/js_supabase.js"></script>
+    
     <script src="../Config & Scripts/js_app.js"></script>
     
     <script>
@@ -28,8 +30,13 @@
                 alert('يرجى إدخال رقم الطاولة');
                 return;
             }
-            // استدعاء دالة تسجيل الطلب
-            await startOrder(table);
+            
+            // التأكد من أن دالة startOrder معرفة في js_app.js
+            if (typeof startOrder === 'function') {
+                await startOrder(table);
+            } else {
+                console.error("دالة startOrder غير معرفة في js_app.js");
+            }
         });
     </script>
 </body>

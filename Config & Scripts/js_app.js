@@ -2,27 +2,28 @@
 
 async function startOrder(tableNumber) {
     try {
-        console.log("جاري تسجيل الطاولة:", tableNumber);
+        console.log("جاري تسجيل الطلب للطاولة:", tableNumber);
 
-        // 1. إرسال بيانات الطاولة لقاعدة البيانات
+        // نقوم بإرسال البيانات لتطابق الأعمدة في جدولك: table_no
         const { data, error } = await supabase
             .from('orders')
             .insert([
                 { 
-                    table_number: tableNumber, 
-                    status: 'pending',
-                    created_at: new Date() 
+                    table_no: tableNumber, // تطابق اسم العمود في جدولك
+                    status: 'confirmed'    // تطابق القيمة الافتراضية في جدولك
                 }
             ])
             .select();
 
         if (error) {
             console.error("خطأ من Supabase:", error);
-            alert("حدث خطأ أثناء الاتصال بقاعدة البيانات. تأكد من إعدادات Supabase.");
+            alert("حدث خطأ أثناء الاتصال بقاعدة البيانات. تأكد من اسم الجدول والأعمدة.");
             return;
         }
 
-        // 2. حفظ رقم الطاولة في ذاكرة المتصفح لاستخدامه في الصفحات القادمة
+        console.log("تم تسجيل الطلب بنجاح:", data);
+
+        // 2. حفظ رقم الطاولة في المتصفح لاستخدامه في الصفحات القادمة
         localStorage.setItem('tableNumber', tableNumber);
         
         // 3. الانتقال لصفحة المنيو

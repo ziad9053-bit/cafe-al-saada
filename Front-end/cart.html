@@ -1,28 +1,55 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>سلة الطلبات</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 p-6">
-    <h1 class="text-2xl font-bold mb-4">طلباتك الحالية:</h1>
+// 1. عرض المنتجات في صفحة السلة عند التحميل
+window.addEventListener('DOMContentLoaded', () => {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const container = document.getElementById('cart-items');
     
-    <div id="cart-items" class="space-y-4"></div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../Config & Scripts/js_supabase.js"></script>
-    <script src="../Config & Scripts/js_cart.js"></script>
-</body>
-</html>
-<div class="mt-6 p-4 border-t">
-    <label class="block text-gray-700 font-bold mb-2">رقم الطاولة:</label>
-    <input type="number" id="tableNo" 
-           class="w-full border-2 border-gray-300 rounded-lg p-3 mb-4 focus:border-blue-500 outline-none" 
-           placeholder="أدخل رقم الطاولة الموجود أمامك">
-    
-    <button onclick="confirmOrder()" 
-            class="w-full bg-green-600 text-white p-4 rounded-xl font-bold text-lg hover:bg-green-700">
-        تأكيد الطلب
-    </button>
-</div>
+    if (cart.length === 0) {
+        container.innerHTML = "<p class='text-gray-500'>سلتك فارغة حالياً.</p>";
+        return;
+    }
+
+    cart.forEach(item => {
+        container.innerHTML += `
+            <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center">
+                <span>${item.name}</span>
+                <span class="font-bold">${item.price} ريال</span>
+            </div>
+        `;
+    });
+});
+
+// 2. إرسال الطلب إلى قاعدة البيانات
+async function confirmOrder() {
+    const tableNo = document.getElementById('tableNo').value;
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+    if (!tableNo) {
+        alert("يرجى إدخال رقم الطاولة!");
+        return;
+    }
+    if (cart.length === 0) {
+        alert("السلة فارغة!");
+        return;
+    }
+
+    // إرسال البيانات
+    for (const item of cart) {
+        const { error } = await window.supabase.from('order_items').insert([
+            { 
+                item_name: item.name, // تأكد من مطابقة اسم العمود في جدولك
+                quantity: item.quantity || 1, 
+                table_no: tableNo 
+            }
+        ]);
+
+        if (error) {
+            console.error("خطأ:", error);
+            alert("حدث خطأ أثناء الإرسال");
+            return;
+        }
+    }
+
+    alert("تم تأكيد طلبك بنجاح! شكراً لك.");
+    localStorage.removeItem('cart'); // تفريغ السلة
+    window.location.href = 'menu.html'; // العودة للمنيو
+}

@@ -3,25 +3,15 @@ async function loadMenu() {
     const menuContainer = document.getElementById('menu-items');
     if (!menuContainer) return;
 
-    // تحديد التصنيف من الرابط (مثلاً: menu.html?cat=hot)
+    // تحديد التصنيف من الرابط
     const urlParams = new URLSearchParams(window.location.search);
     const category = urlParams.get('cat'); 
 
-   function addToCart(id, name, price) {
-    console.log("جاري إضافة الصنف:", { id, name, price }); // هذا السطر سيكشف لنا الحقيقة
-    
-    if (!id || !name) {
-        alert("خطأ: بيانات الصنف غير مكتملة!");
-        return;
+    // بناء الطلب - تأكدت من إضافة تعريف المتغير query
+    let query = window.supabase.from('items').select('*');
+    if (category) {
+        query = query.eq('category', category);
     }
-
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    cart.push({ id, name, price });
-    localStorage.setItem('cart', JSON.stringify(cart));
-    
-    updateCartCount();
-    alert("تمت إضافة " + name + " للسلة!");
-}
 
     const { data, error } = await query;
 
@@ -32,7 +22,7 @@ async function loadMenu() {
 
     // عرض الأصناف
     menuContainer.innerHTML = ""; 
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
         menuContainer.innerHTML = "<p class='text-center'>لا توجد أصناف في هذا القسم.</p>";
     } else {
         data.forEach(item => {
@@ -47,15 +37,15 @@ async function loadMenu() {
         });
     }
     
-    // تحديث العداد
     updateCartCount();
 }
 
-// 2. دالة الإضافة للسلة
+// 2. دالة الإضافة للسلة (واحدة فقط ولا يوجد تكرار)
 function addToCart(id, name, price) {
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     cart.push({ id, name, price });
     localStorage.setItem('cart', JSON.stringify(cart));
+    
     updateCartCount();
     alert("تمت إضافة " + name + " للسلة!");
 }

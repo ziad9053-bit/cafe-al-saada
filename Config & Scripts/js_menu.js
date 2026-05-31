@@ -28,6 +28,20 @@ async function loadMenu() {
         `;
     });
 }
+function addToCart(id, name, price) {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart.push({ id, name, price });
+    localStorage.setItem('cart', JSON.stringify(cart));
+    
+    // التحديث الفوري للرقم
+    updateCartCount();
+    alert(`تمت إضافة ${name}. عدد العناصر في السلة: ${cart.length}`);
+}
 
+function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const badge = document.getElementById('cart-badge');
+    if (badge) badge.innerText = cart.length;
+}
 // تشغيل الدالة
 loadMenu();

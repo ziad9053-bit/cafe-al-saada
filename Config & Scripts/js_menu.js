@@ -1,6 +1,5 @@
 /**
  * ملف: js_menu.js
- * الوظيفة: جلب الأصناف من Supabase، عرضها، وإدارة سلة المشتريات محلياً
  */
 
 async function loadMenu() {
@@ -17,80 +16,84 @@ async function loadMenu() {
     const { data, error } = await query;
     if (error) { 
         console.error("خطأ Supabase:", error); 
+        menuContainer.innerHTML = "<p class='text-center text-red-500'>تعذر تحميل القائمة.</p>";
         return; 
     }
 
     menuContainer.innerHTML = ""; 
     if (!data || data.length === 0) {
-        menuContainer.innerHTML = "<p class='text-center'>لا توجد أصناف.</p>";
+        menuContainer.innerHTML = "<p class='text-center'>لا توجد أصناف في هذه الفئة حالياً.</p>";
     } else {
         data.forEach(item => {
-            // ترميز الاسم لضمان سلامة البيانات في الـ HTML
-            const encodedName = encodeURIComponent(item.name);
-            
             menuContainer.innerHTML += `
-                <div class="menu-item p-4 border rounded-xl bg-white shadow-sm">
-                    <h3 class="font-bold">${item.name}</h3>
-                    <p>السعر: ${item.price} ريال</p>
-                    <button class="add-to-cart-btn mt-2 bg-green-600 text-white px-4 py-2 rounded-lg" 
+                <div class="menu-item p-4 border rounded-xl bg-white shadow-sm transition hover:shadow-md">
+                    <h3 class="font-bold text-lg">${item.name}</h3>
+                    <p class="text-gray-600 mb-2">السعر: ${item.price} ريال</p>
+                    <button class="add-to-cart-btn w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition" 
                             data-id="${item.id}" 
-                            data-name="${encodedName}" 
+                            data-name="${item.name}" 
                             data-price="${item.price}">
                             إضافة للسلة
                     </button>
                 </div>
             `;
         });
-        
-        // ربط الأحداث (Event Delegation)
-        document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const { id, name, price } = e.target.dataset;
-                addToCart(id, decodeURIComponent(name), parseFloat(price));
-            });
-        });
     }
+    
+    // استخدام Event Delegation (أسرع وأكثر كفاءة)
+    menuContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('add-to-cart-btn')) {
+            const { id, name, price } = e.target.dataset;
+            addToCart(id, name, parseFloat(price));
+        }
+    });
+
     updateCartCount();
 }
 
 /**
- * دالة إضافة صنف للسلة مع منطق الدمج الذكي للكميات
+ * دالة إضافة صنف للسلة
  */
 function addToCart(id, name, price) {
-    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    let cart = [];
+    try {
+        cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    } catch (e) {
+        cart = [];
+    }
     
-    // البحث عن الصنف إذا كان موجوداً مسبقاً في السلة
     const existingItem = cart.find(item => item.id === id);
     
     if (existingItem) {
-        // زيادة الكمية إذا وجد الصنف
         existingItem.quantity = (parseInt(existingItem.quantity) || 1) + 1;
     } else {
-        // إضافة صنف جديد مع كمية أولية 1
         cart.push({ id, name, price, quantity: 1 });
     }
     
-    // حفظ البيانات في localStorage و window.name للمزامنة
-    const cartString = JSON.stringify(cart);
-    localStorage.setItem('cart', cartString);
-    window.name = cartString; 
-    
-    alert("تمت إضافة " + name + " للسلة!");
+    localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
+    
+    // رسالة تنبيه خفيفة (يمكنك استبدالها بـ Toast لاحقاً)
+    console.log(`تمت إضافة ${name} للسلة`);
 }
 
 /**
- * دالة تحديث عداد السلة في واجهة المستخدم
+ * دالة تحديث العداد
  */
 function updateCartCount() {
     const badge = document.getElementById('cart-badge');
-    if (badge) {
-        const cart = JSON.parse(localStorage.getItem('cart') || window.name || '[]');
-        // حساب مجموع الكميات الإجمالي
-        const totalItems = cart.reduce((sum, item) => sum + (parseInt(item.quantity) || 1), 0);
-        badge.innerText = totalItems;
+    if (!badge) return;
+
+    let cart = [];
+    try {
+        cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    } catch (e) {
+        cart = [];
     }
+    
+    const totalItems = cart.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
+    badge.innerText = totalItems;
 }
 
-// تشغيل الوظائف عند تحميل الصفحة
+// تشغيل الوظائف
 window.addEventListener('DOMContentLoaded', loadMenu);

@@ -1,30 +1,27 @@
-// [تنبيه: هذا الكود لا يحتاج مفاتيح إضافية، يعتمد على الربط الموجود مسبقاً]
+async function loadMenu() {
+    // [تنبيه: نقوم بجلب المنتجات المتاحة فقط التي قيمتها true في عمود is_available]
+    const { data, error } = await supabase
+        .from('items')
+        .select('*')
+        .eq('is_available', true); // [تنبيه: هذا يضمن عدم عرض المنتجات غير المتاحة]
 
-async function addToCart(itemId) {
-    // 1. جلب رقم الطاولة الذي حفظناه سابقاً في الصفحة الأولى
-    const tableNumber = localStorage.getItem('tableNumber');
-    
-    if (!tableNumber) {
-        alert("يرجى العودة للصفحة الرئيسية وتحديد رقم الطاولة");
+    if (error) {
+        console.error("خطأ في جلب القائمة:", error);
         return;
     }
 
-    console.log("جاري إضافة المنتج للطلب...");
+    const menuContainer = document.getElementById('menu-items');
+    if (!menuContainer) return;
 
-    // 2. إضافة المنتج لجدول order_items
-    const { data, error } = await supabase
-        .from('order_items')
-        .insert([
-            { 
-                item_id: itemId,       // معرف المنتج
-                table_no: tableNumber  // ربط المنتج بالطاولة
-            }
-        ]);
-
-    if (error) {
-        console.error("خطأ عند الإضافة:", error);
-        alert("فشل إضافة المنتج. تأكد من إعدادات السياسات (Policies) في Supabase.");
-    } else {
-        alert("تمت إضافة المنتج للطلب!");
-    }
+    menuContainer.innerHTML = "";
+    
+    data.forEach(item => {
+        menuContainer.innerHTML += `
+            <div class="bg-white p-4 shadow rounded border">
+                <h3 class="font-bold">${item.name}</h3>
+                <p>${item.price} ريال</p>
+                <button onclick="addToCart('${item.id}')" class="bg-blue-500 text-white p-2 rounded mt-2">إضافة للسلة</button>
+            </div>
+        `;
+    });
 }

@@ -1,3 +1,14 @@
+// دالة لتحديث عداد السلة في أي صفحة
+function updateCartCount() {
+    const badge = document.getElementById('cart-badge');
+    if (badge) {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        badge.innerText = cart.length;
+    }
+}
+
+// تشغيل العداد عند تحميل أي صفحة
+window.addEventListener('DOMContentLoaded', updateCartCount);
 async function loadMenu() {
     const menuContainer = document.getElementById('menu-items');
     if (!menuContainer) return;

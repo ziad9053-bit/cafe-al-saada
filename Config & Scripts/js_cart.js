@@ -2,15 +2,23 @@ window.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('cart-items');
     if (!container) return;
 
-    let cart = JSON.parse(localStorage.getItem('cart') || window.name || '[]');
+    // جلب البيانات مع تنظيفها من أي قيم غير معرفة
+    let cart = [];
+    try {
+        const rawData = localStorage.getItem('cart') || window.name || '[]';
+        cart = JSON.parse(rawData);
+    } catch (e) {
+        cart = [];
+    }
 
     // تجميع العناصر المتطابقة (بناءً على ID) لمنع أي تكرار مرئي
     const groupedCart = cart.reduce((acc, item) => {
         const found = acc.find(i => i.id === item.id);
+        const quantity = parseInt(item.quantity) || 1;
         if (found) {
-            found.quantity = (parseInt(found.quantity) || 1) + (parseInt(item.quantity) || 1);
+            found.quantity += quantity;
         } else {
-            acc.push({ ...item, quantity: parseInt(item.quantity) || 1 });
+            acc.push({ ...item, quantity });
         }
         return acc;
     }, []);
@@ -21,20 +29,25 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     container.innerHTML = groupedCart.map((item) => `
-        <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center border mb-2">
+        <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center border mb-2 transition-all">
             <div>
-                <h3 class="font-bold">${item.name}</h3>
+                <h3 class="font-bold text-lg">${item.name}</h3>
                 <p class="text-gray-600">${item.price} ريال × ${item.quantity}</p>
             </div>
-            <button onclick="removeItem('${item.id}')" class="text-red-500 font-bold hover:text-red-700">حذف</button>
+            <button onclick="removeItem('${item.id}', '${item.name}')" 
+                    class="bg-red-50 text-red-600 px-3 py-1 rounded-lg font-bold hover:bg-red-100 transition-colors">
+                حذف
+            </button>
         </div>
     `).join('');
 });
 
 /**
- * دالة الحذف المحدثة: تقوم بحذف كافة النسخ من الصنف المحدد بالـ ID
+ * دالة الحذف: تقوم بحذف كافة النسخ من الصنف المحدد بالـ ID مع تأكيد بصري
  */
-function removeItem(id) {
+function removeItem(id, name) {
+    if (!confirm(`هل أنت متأكد من حذف ${name} من السلة؟`)) return;
+
     let cart = JSON.parse(localStorage.getItem('cart') || window.name || '[]');
     
     // تصفية المصفوفة لإزالة كل العناصر التي تحمل هذا الـ ID
@@ -44,5 +57,5 @@ function removeItem(id) {
     localStorage.setItem('cart', updatedData);
     window.name = updatedData;
     
-    location.reload(); // تحديث الصفحة لرؤية التغيير
+    location.reload(); 
 }

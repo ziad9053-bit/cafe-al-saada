@@ -1,5 +1,11 @@
 window.addEventListener('DOMContentLoaded', () => {
     renderCart();
+
+    // ربط زر تأكيد الطلب برمجياً
+    const confirmBtn = document.getElementById('confirm-btn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', confirmOrder);
+    }
 });
 
 // دالة لتجميع الطلبات (تستخدم في العرض وعند التأكيد)
@@ -64,7 +70,7 @@ function removeItem(id, name) {
     location.reload(); 
 }
 
-// دالة تأكيد الطلب (ترسل البيانات المجمعة لـ Supabase)
+// دالة تأكيد الطلب
 async function confirmOrder() {
     const tableInput = document.getElementById('tableNo');
     const tableNo = tableInput ? tableInput.value : null;
@@ -89,6 +95,7 @@ async function confirmOrder() {
     ]);
 
     if (error) {
+        console.error("خطأ Supabase:", error);
         alert("خطأ في إرسال الطلب: " + error.message);
     } else {
         alert("تم تأكيد طلبك بنجاح!");

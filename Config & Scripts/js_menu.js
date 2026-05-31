@@ -16,7 +16,7 @@ async function loadMenu() {
         menuContainer.innerHTML = "<p class='text-center'>لا توجد أصناف.</p>";
     } else {
         data.forEach(item => {
-            // ترميز الاسم لضمان عدم ضياع أي حرف أو رمز
+            // ترميز الاسم لمنع أي تعارض في الـ HTML
             const encodedName = encodeURIComponent(item.name);
             
             menuContainer.innerHTML += `
@@ -33,11 +33,10 @@ async function loadMenu() {
             `;
         });
         
-        // ربط الأحداث ديناميكياً
+        // ربط الأحداث ديناميكياً (هذه الطريقة تضمن عمل الزر دائماً)
         document.querySelectorAll('.add-to-cart-btn').forEach(button => {
             button.addEventListener('click', (e) => {
                 const { id, name, price } = e.target.dataset;
-                // فك الترميز قبل الإضافة
                 addToCart(id, decodeURIComponent(name), parseFloat(price));
             });
         });
@@ -46,14 +45,14 @@ async function loadMenu() {
 }
 
 function addToCart(id, name, price) {
+    // جلب السلة
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
     cart.push({ id, name, price });
     
-    // التخزين
-    localStorage.setItem('cart', JSON.stringify(cart));
-    
-    // المزامنة الإضافية (لضمان انتقال البيانات عبر المتصفح)
-    window.name = JSON.stringify(cart);
+    // حفظ البيانات في مكانين لضمان عدم الضياع
+    const cartString = JSON.stringify(cart);
+    localStorage.setItem('cart', cartString);
+    window.name = cartString; // مخزن احتياطي للمزامنة
     
     alert("تمت إضافة " + name + " للسلة!");
     updateCartCount();
@@ -62,7 +61,7 @@ function addToCart(id, name, price) {
 function updateCartCount() {
     const badge = document.getElementById('cart-badge');
     if (badge) {
-        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const cart = JSON.parse(localStorage.getItem('cart') || window.name || '[]');
         badge.innerText = cart.length;
     }
 }

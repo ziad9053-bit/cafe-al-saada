@@ -29,4 +29,14 @@
         🛒 السلة <span id="cart-badge" class="bg-red-500 text-white text-xs px-2 rounded-full">0</span>
     </a>
 </nav>
+<script src="../Config & Scripts/js_supabase.js"></script>
+<script src="../Config & Scripts/js_kitchen.js"></script> ```
+*(ملاحظة: تأكد من المسار `../` للرجوع للمجلد الرئيسي ثم الدخول للمجلد المطلوب).*
+
+### 3. تأكد من "تصدير" المتغير في `js_supabase.js`
+افتح ملف `js_supabase.js` وتأكد أنك قمت بتعريف المتغير `window.supabase` بشكل صحيح، مثال:
+```javascript
+const supabaseUrl = 'رابط_مشروعك';
+const supabaseKey = 'مفتاح_مشروعك';
+window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
 </body>

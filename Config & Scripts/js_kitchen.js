@@ -1,53 +1,64 @@
-// Config & Scripts/js_kitchen.js
-
-// [https://xywrgfnktvesnmeeqlux.supabase.co]
-// [eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5d3JnZm5rdHZlc25tZWVxbHV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNzgyMTgsImV4cCI6MjA5NTY1NDIxOH0.mMWZsGlwDimcGoKA96F9nLuXJBE0k3UC9_JYbvqLisI]
-// [تنبيه: هذا الملف يعتمد على متغير 'supabase' المعرف في js_supabase.js]
+/**
+ * ملف: js_kitchen.js
+ * الوظيفة: إدارة طلبات المطبخ وجلبها من Supabase بشكل حي
+ */
 
 async function loadKitchenOrders() {
-    // [تنبيه: جلب الطلبات من جدول order_items مع معلومات المنتجات المرتبطة]
-    const { data, error } = await supabase
-        .from('order_items')
-        .select(`
-            id,
-            table_no,
-            items (name),
-            status
-        `)
-        .neq('status', 'completed'); // [تنبيه: جلب الطلبات غير المكتملة فقط]
+    const container = document.getElementById('kitchen-orders');
+    if (!container) return;
+
+    // جلب الطلبات غير المكتملة فقط
+    const { data, error } = await window.supabase
+        .from('orders') // تأكد أن الجدول اسمه 'orders'
+        .select('*')
+        .neq('status', 'completed')
+        .order('created_at', { ascending: true });
 
     if (error) {
         console.error("خطأ في جلب طلبات المطبخ:", error);
         return;
     }
 
-    const container = document.getElementById('kitchen-orders');
-    container.innerHTML = "";
+    if (data.length === 0) {
+        container.innerHTML = "<p class='text-center text-gray-500 mt-10'>لا توجد طلبات جديدة حالياً.</p>";
+        return;
+    }
 
-    data.forEach(order => {
-        container.innerHTML += `
-            <div class="bg-white p-6 shadow-lg rounded-lg border-r-4 border-blue-500">
-                <h2 class="text-xl font-bold">طاولة رقم: ${order.table_no}</h2>
-                <p class="text-lg">الطلب: ${order.items ? order.items.name : "غير معروف"}</p>
-                <button onclick="markAsComplete('${order.id}')" class="mt-4 bg-green-500 text-white px-4 py-2 rounded">
+    container.innerHTML = data.map(order => {
+        // تحويل مصفوفة الأصناف إلى نص للعرض
+        const itemsList = order.items.map(i => `<li>${i.name} × ${i.quantity || 1}</li>`).join('');
+        
+        return `
+            <div class="bg-white p-6 shadow-md rounded-xl border-r-8 border-yellow-500 hover:shadow-lg transition-shadow">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold">طاولة رقم: ${order.table_number}</h2>
+                    <span class="text-sm text-gray-400">${new Date(order.created_at).toLocaleTimeString()}</span>
+                </div>
+                <ul class="my-4 text-lg text-gray-700 list-disc list-inside">
+                    ${itemsList}
+                </ul>
+                <button onclick="markAsComplete('${order.id}')" 
+                        class="w-full mt-2 bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition-colors">
                     تم التحضير
                 </button>
             </div>
         `;
-    });
+    }).join('');
 }
 
-// [تنبيه: دالة لتحديث حالة الطلب عند ضغط الباريستا على زر "تم التحضير"]
 async function markAsComplete(orderId) {
-    const { error } = await supabase
-        .from('order_items')
+    const { error } = await window.supabase
+        .from('orders')
         .update({ status: 'completed' })
         .eq('id', orderId);
 
     if (!error) {
-        loadKitchenOrders(); // [تنبيه: إعادة تحميل القائمة بعد التحديث]
+        loadKitchenOrders(); // تحديث فوري للقائمة
+    } else {
+        alert("حدث خطأ أثناء تحديث الطلب");
     }
 }
 
-// [تنبيه: تحميل الطلبات عند فتح الصفحة]
+// تحديث تلقائي للشاشة كل 10 ثوانٍ لضمان ظهور الطلبات الجديدة فور وصولها
+setInterval(loadKitchenOrders, 10000);
 loadKitchenOrders();

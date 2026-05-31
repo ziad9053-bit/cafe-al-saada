@@ -6,6 +6,7 @@ async function loadMenu() {
     const urlParams = new URLSearchParams(window.location.search);
     const category = urlParams.get('cat'); 
 
+    // جلب البيانات من Supabase
     let query = window.supabase.from('items').select('*');
     if (category) {
         query = query.eq('category', category);
@@ -23,11 +24,14 @@ async function loadMenu() {
         menuContainer.innerHTML = "<p class='text-center'>لا توجد أصناف في هذا القسم.</p>";
     } else {
         data.forEach(item => {
+            // تنظيف اسم الصنف من علامات التنصيص لتجنب أخطاء JavaScript
+            const sanitizedName = item.name.replace(/'/g, "\\'");
+            
             menuContainer.innerHTML += `
                 <div class="menu-item p-4 border rounded-xl bg-white shadow-sm">
                     <h3 class="font-bold">${item.name}</h3>
                     <p>السعر: ${item.price} ريال</p>
-                    <button onclick="addToCart('${item.id}', '${item.name.replace(/'/g, "\\'")}', ${item.price})" 
+                    <button onclick="addToCart('${item.id}', '${sanitizedName}', ${item.price})" 
                             class="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg">إضافة للسلة</button>
                 </div>
             `;
@@ -36,9 +40,8 @@ async function loadMenu() {
     updateCartCount();
 }
 
-// 2. دالة الإضافة للسلة (مُعدلة للمزامنة المزدوجة)
+// 2. دالة الإضافة للسلة (مُعدلة للمزامنة المزدوجة لضمان انتقال البيانات)
 function addToCart(id, name, price) {
-    // جلب السلة الحالية
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
     
     // إضافة الصنف

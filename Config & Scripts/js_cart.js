@@ -1,18 +1,23 @@
+/**
+ * ملف: js_cart.js
+ * الوظيفة: إدارة عرض السلة، حذف الأصناف، وإرسال الطلب لـ Supabase
+ */
+
+// التأكد من تحميل الصفحة وتجهيز الأحداث
 window.addEventListener('DOMContentLoaded', () => {
     renderCart();
 
-    // ربط زر تأكيد الطلب برمجياً
     const confirmBtn = document.getElementById('confirm-btn');
     if (confirmBtn) {
         confirmBtn.addEventListener('click', confirmOrder);
     }
 });
 
-// دالة لتجميع الطلبات (تستخدم في العرض وعند التأكيد)
+// دالة تجميع الطلبات (منطق ذكي للدمج)
 function getGroupedCart() {
     let cart = [];
     try {
-        const rawData = localStorage.getItem('cart') || window.name || '[]';
+        const rawData = localStorage.getItem('cart') || '[]';
         cart = JSON.parse(rawData);
     } catch (e) {
         cart = [];
@@ -43,13 +48,13 @@ function renderCart() {
     }
 
     container.innerHTML = groupedCart.map((item) => `
-        <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center border mb-2 transition-all">
+        <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center border mb-2">
             <div>
                 <h3 class="font-bold text-lg">${item.name}</h3>
                 <p class="text-gray-600">${item.price} ريال × ${item.quantity}</p>
             </div>
             <button onclick="removeItem('${item.id}', '${item.name}')" 
-                    class="bg-red-50 text-red-600 px-3 py-1 rounded-lg font-bold hover:bg-red-100 transition-colors">
+                    class="bg-red-50 text-red-600 px-3 py-1 rounded-lg font-bold hover:bg-red-100 transition">
                 حذف
             </button>
         </div>
@@ -60,14 +65,11 @@ function renderCart() {
 function removeItem(id, name) {
     if (!confirm(`هل أنت متأكد من حذف ${name} من السلة؟`)) return;
 
-    let cart = JSON.parse(localStorage.getItem('cart') || window.name || '[]');
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const updatedCart = cart.filter(item => item.id !== id);
     
-    const updatedData = JSON.stringify(updatedCart);
-    localStorage.setItem('cart', updatedData);
-    window.name = updatedData;
-    
-    location.reload(); 
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    renderCart(); // إعادة العرض فوراً بدلاً من تحميل الصفحة بالكامل
 }
 
 // دالة تأكيد الطلب
@@ -85,12 +87,12 @@ async function confirmOrder() {
         return;
     }
 
-    // إرسال البيانات المجمعة لجدول orders
-    const { data, error } = await window.supabase.from('orders').insert([
+    // إرسال البيانات (تأكد أن حقل 'table_number' في قاعدة البيانات يطابق هذا الاسم)
+    const { error } = await window.supabase.from('orders').insert([
         { 
-            table_no: tableNo, 
+            table_number: parseInt(tableNo), 
             items: groupedCart, 
-            status: 'confirmed' 
+            status: 'pending' 
         }
     ]);
 
@@ -98,9 +100,8 @@ async function confirmOrder() {
         console.error("خطأ Supabase:", error);
         alert("خطأ في إرسال الطلب: " + error.message);
     } else {
-        alert("تم تأكيد طلبك بنجاح!");
+        alert("تم إرسال طلبك للمطبخ بنجاح!");
         localStorage.removeItem('cart');
-        window.name = ''; 
         window.location.href = 'menu.html';
     }
 }

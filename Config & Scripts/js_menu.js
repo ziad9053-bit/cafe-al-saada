@@ -1,28 +1,30 @@
-// Config & Scripts/js_menu.js
+// [تنبيه: هذا الكود لا يحتاج مفاتيح إضافية، يعتمد على الربط الموجود مسبقاً]
 
-// [تنبيه: هذا الكود لا يحتاج مفاتيح إضافية، يعتمد على supabase المعرف في js_supabase.js]
-
-async function loadMenu() {
-    const { data, error } = await supabase
-        .from('items') // اسم جدول المنتجات
-        .select('*');
-
-    if (error) {
-        console.error("خطأ في جلب المنيو:", error);
+async function addToCart(itemId) {
+    // 1. جلب رقم الطاولة الذي حفظناه سابقاً في الصفحة الأولى
+    const tableNumber = localStorage.getItem('tableNumber');
+    
+    if (!tableNumber) {
+        alert("يرجى العودة للصفحة الرئيسية وتحديد رقم الطاولة");
         return;
     }
 
-    const container = document.getElementById('menu-container');
-    data.forEach(item => {
-        container.innerHTML += `
-            <div class="bg-white p-4 rounded shadow">
-                <h2 class="font-bold">${item.name}</h2>
-                <p>${item.price} ريال</p>
-                <button onclick="addToCart('${item.id}')" class="bg-green-500 text-white px-4 py-2 mt-2 rounded">إضافة</button>
-            </div>
-        `;
-    });
-}
+    console.log("جاري إضافة المنتج للطلب...");
 
-// تنفيذ الدالة عند تحميل الصفحة
-loadMenu();
+    // 2. إضافة المنتج لجدول order_items
+    const { data, error } = await supabase
+        .from('order_items')
+        .insert([
+            { 
+                item_id: itemId,       // معرف المنتج
+                table_no: tableNumber  // ربط المنتج بالطاولة
+            }
+        ]);
+
+    if (error) {
+        console.error("خطأ عند الإضافة:", error);
+        alert("فشل إضافة المنتج. تأكد من إعدادات السياسات (Policies) في Supabase.");
+    } else {
+        alert("تمت إضافة المنتج للطلب!");
+    }
+}

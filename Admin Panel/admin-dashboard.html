@@ -1,3 +1,18 @@
+<script src="../Config%20%26%20Scripts/js_auth_config.js"></script>
+<script>
+    // التأكد من الصلاحية عند فتح الصفحة
+    const role = localStorage.getItem('role');
+    
+    // إذا كنت في صفحة المطبخ، يجب أن يكون الدور إما 'admin' أو 'worker'
+    if (window.location.pathname.includes('kitchen.html') && role !== 'admin' && role !== 'worker') {
+        window.location.href = "login.html";
+    }
+    
+    // إذا كنت في لوحة المدير، يجب أن يكون الدور 'admin' فقط
+    if (window.location.pathname.includes('admin-dashboard.html') && role !== 'admin') {
+        window.location.href = "admin-login.html";
+    }
+</script>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>

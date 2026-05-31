@@ -1,7 +1,7 @@
 // Config & Scripts/js_kitchen.js
 
-// [تنبيه: ضع رابط المشروع الخاص بك هنا]
-// [تنبيه: ضع مفتاح الـ API العام الخاص بمشروعك هنا]
+// [https://xywrgfnktvesnmeeqlux.supabase.co]
+// [eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5d3JnZm5rdHZlc25tZWVxbHV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNzgyMTgsImV4cCI6MjA5NTY1NDIxOH0.mMWZsGlwDimcGoKA96F9nLuXJBE0k3UC9_JYbvqLisI]
 // [تنبيه: هذا الملف يعتمد على متغير 'supabase' المعرف في js_supabase.js]
 
 async function loadKitchenOrders() {

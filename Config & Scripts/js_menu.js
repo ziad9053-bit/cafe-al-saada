@@ -7,12 +7,27 @@ function updateCartCount() {
     }
 }
 
-// تشغيل العداد عند تحميل أي صفحة
-window.addEventListener('DOMContentLoaded', updateCartCount);
-async function loadMenu() {
-    const menuContainer = document.getElementById('menu-items');
-    if (!menuContainer) return;
+window.addEventListener('DOMContentLoaded', () => {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const container = document.getElementById('cart-items');
+    
+    console.log("محتويات السلة الحالية:", cart); // هذا السطر سيخبرنا هل البيانات موجودة أم لا
 
+    if (cart.length === 0) {
+        container.innerHTML = "<p class='text-gray-500 text-center'>سلتك فارغة.</p>";
+        return;
+    }
+
+    container.innerHTML = "";
+    cart.forEach((item, index) => {
+        container.innerHTML += `
+            <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center">
+                <span class="font-bold">${item.name || "صنف غير معروف"}</span>
+                <span class="text-gray-600">${item.price ? item.price + ' ريال' : ''}</span>
+            </div>
+        `;
+    });
+});
     // 1. تحديد التصنيف من الرابط (مثلاً: menu.html?cat=hot)
     const urlParams = new URLSearchParams(window.location.search);
     const category = urlParams.get('cat'); 

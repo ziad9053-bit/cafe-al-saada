@@ -23,7 +23,6 @@ async function loadMenu() {
         menuContainer.innerHTML = "<p class='text-center'>لا توجد أصناف في هذا القسم.</p>";
     } else {
         data.forEach(item => {
-            // استخدام دالة الإضافة مباشرة
             menuContainer.innerHTML += `
                 <div class="menu-item p-4 border rounded-xl bg-white shadow-sm">
                     <h3 class="font-bold">${item.name}</h3>
@@ -37,7 +36,7 @@ async function loadMenu() {
     updateCartCount();
 }
 
-// 2. دالة الإضافة للسلة (مُعدلة لتكون أكثر دقة)
+// 2. دالة الإضافة للسلة (مُعدلة للمزامنة المزدوجة)
 function addToCart(id, name, price) {
     // جلب السلة الحالية
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -45,8 +44,12 @@ function addToCart(id, name, price) {
     // إضافة الصنف
     cart.push({ id, name, price });
     
-    // الحفظ في localStorage
-    localStorage.setItem('cart', JSON.stringify(cart));
+    // تحويل البيانات لنص
+    const cartString = JSON.stringify(cart);
+    
+    // الحفظ في localStorage و window.name للضمان
+    localStorage.setItem('cart', cartString);
+    window.name = cartString; 
     
     console.log("تم إضافة الصنف. السلة الحالية:", cart);
     

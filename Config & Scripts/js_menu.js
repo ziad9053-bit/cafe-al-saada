@@ -1,8 +1,10 @@
 async function loadMenu() {
-    // 1. تحقق: هل الصفحة الحالية تحتوي على مكان لعرض الأصناف؟
+    // 1. البحث عن العنصر
     const menuContainer = document.getElementById('menu-items');
+    
+    // 2. إذا لم نجد العنصر (نحن في صفحة الترحيب أو غيرها)، نتوقف بصمت دون إظهار أخطاء
     if (!menuContainer) {
-        console.log("الصفحة الحالية لا تتطلب تحميل المنيو.");
+        console.log("نحن في صفحة الترحيب، لا حاجة لعرض القائمة.");
         return; 
     }
 
@@ -14,7 +16,7 @@ async function loadMenu() {
         return;
     }
 
-    menuContainer.innerHTML = ""; // تفريغ
+    menuContainer.innerHTML = ""; 
     data.forEach(item => {
         menuContainer.innerHTML += `
             <div class="menu-item p-4 border rounded-xl bg-white shadow-sm">
@@ -27,5 +29,5 @@ async function loadMenu() {
     });
 }
 
-// تشغيل عند التحميل
+// تشغيل الدالة
 loadMenu();

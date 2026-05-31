@@ -2,31 +2,23 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>مرحباً بك في المقهى</title>
-    <link rel="stylesheet" href="../css/style.css">
+    <title>مرحباً بك في مقهانا</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
+<body class="bg-gradient-to-br from-amber-50 to-orange-100 min-h-screen flex items-center justify-center p-4">
 
-    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-sm text-center">
-        <h1 class="text-2xl font-bold mb-6">مرحباً بك!</h1>
-        <input type="text" id="tableNumber" placeholder="رقم الطاولة" 
-               class="w-full p-3 border border-gray-300 rounded mb-4 text-center">
-        <button onclick="saveTable()" 
-                class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700">
-            ابدأ الطلب
-        </button>
+    <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center">
+        <h1 class="text-4xl font-bold text-orange-800 mb-4">أهلاً بك!</h1>
+        <p class="text-gray-600 mb-8">نحن سعداء بوجودك معنا. استمتع بتجربة قهوة لا تُنسى.</p>
+        
+        <div class="mb-8 p-4 bg-orange-50 rounded-xl text-sm text-orange-700">
+            خدمة سريعة، طعم أصيل، وأجواء مريحة.
+        </div>
+
+        <a href="menu.html" 
+           class="block w-full bg-orange-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-orange-700 transition">
+           تصفح القائمة
+        </a>
     </div>
-
-    <script src="../Config & Scripts/js_supabase.js"></script>
-    <script src="../Config & Scripts/js_app.js"></script>
-    
-    <script>
-        function saveTable() {
-            const table = document.getElementById('tableNumber').value;
-            localStorage.setItem('tableNumber', table);
-            window.location.href = 'menu.html'; // الانتقال للمنيو
-        }
-    </script>
 </body>
 </html>

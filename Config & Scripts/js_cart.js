@@ -2,7 +2,7 @@ window.addEventListener('DOMContentLoaded', () => {
     renderCart();
 });
 
-// دالة لتجميع الطلبات (يمكنك استدعاؤها في أي صفحة)
+// دالة لتجميع الطلبات (تستخدم في العرض وعند التأكيد)
 function getGroupedCart() {
     let cart = [];
     try {
@@ -24,6 +24,7 @@ function getGroupedCart() {
     }, []);
 }
 
+// دالة عرض السلة
 function renderCart() {
     const container = document.getElementById('cart-items');
     if (!container) return;
@@ -49,6 +50,7 @@ function renderCart() {
     `).join('');
 }
 
+// دالة الحذف
 function removeItem(id, name) {
     if (!confirm(`هل أنت متأكد من حذف ${name} من السلة؟`)) return;
 
@@ -60,4 +62,38 @@ function removeItem(id, name) {
     window.name = updatedData;
     
     location.reload(); 
+}
+
+// دالة تأكيد الطلب (ترسل البيانات المجمعة لـ Supabase)
+async function confirmOrder() {
+    const tableInput = document.getElementById('tableNo');
+    const tableNo = tableInput ? tableInput.value : null;
+    const groupedCart = getGroupedCart();
+
+    if (!tableNo) {
+        alert("يرجى إدخال رقم الطاولة");
+        return;
+    }
+    if (groupedCart.length === 0) {
+        alert("السلة فارغة");
+        return;
+    }
+
+    // إرسال البيانات المجمعة لجدول orders
+    const { data, error } = await window.supabase.from('orders').insert([
+        { 
+            table_no: tableNo, 
+            items: groupedCart, 
+            status: 'confirmed' 
+        }
+    ]);
+
+    if (error) {
+        alert("خطأ في إرسال الطلب: " + error.message);
+    } else {
+        alert("تم تأكيد طلبك بنجاح!");
+        localStorage.removeItem('cart');
+        window.name = ''; 
+        window.location.href = 'menu.html';
+    }
 }

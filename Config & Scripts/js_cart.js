@@ -20,13 +20,29 @@ window.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    container.innerHTML = groupedCart.map((item, index) => `
+    container.innerHTML = groupedCart.map((item) => `
         <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center border mb-2">
             <div>
                 <h3 class="font-bold">${item.name}</h3>
                 <p class="text-gray-600">${item.price} ريال × ${item.quantity}</p>
             </div>
-            <button onclick="removeItem('${item.id}')" class="text-red-500 font-bold">حذف</button>
+            <button onclick="removeItem('${item.id}')" class="text-red-500 font-bold hover:text-red-700">حذف</button>
         </div>
     `).join('');
 });
+
+/**
+ * دالة الحذف المحدثة: تقوم بحذف كافة النسخ من الصنف المحدد بالـ ID
+ */
+function removeItem(id) {
+    let cart = JSON.parse(localStorage.getItem('cart') || window.name || '[]');
+    
+    // تصفية المصفوفة لإزالة كل العناصر التي تحمل هذا الـ ID
+    const updatedCart = cart.filter(item => item.id !== id);
+    
+    const updatedData = JSON.stringify(updatedCart);
+    localStorage.setItem('cart', updatedData);
+    window.name = updatedData;
+    
+    location.reload(); // تحديث الصفحة لرؤية التغيير
+}

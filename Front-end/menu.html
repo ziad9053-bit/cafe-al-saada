@@ -1,42 +1,26 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قائمة المشروبات</title>
+    <script src="../Config%20%26%20Scripts/dependencies.js"></script>
+</head>
 <body class="bg-gray-100 p-6">
-    <h1 class="text-3xl font-bold mb-6">قائمة المشروبات</h1>
+    <h1 class="text-3xl font-bold mb-6 text-center">قائمة المشروبات</h1>
     
-    <div id="menu-items" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+    <div id="menu-items" class="grid grid-cols-1 md:grid-cols-3 gap-4 pb-24"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../Config & Scripts/js_supabase.js"></script>
-    <script src="../Config & Scripts/js_menu.js"></script>
-<a href="cart.html" 
-   class="fixed bottom-6 left-6 bg-orange-600 text-white p-4 rounded-full shadow-lg flex items-center justify-center hover:bg-orange-700 transition">
-    <span class="font-bold">🛒 السلة</span>
-</a>
-<nav class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-3 flex justify-around items-center shadow-lg">
-    <a href="index.html" class="text-center text-sm">🏠 الرئيسية</a>
-    <a href="menu.html?cat=hot" class="text-center text-sm">☕ ساخن</a>
-    <a href="menu.html?cat=cold" class="text-center text-sm">🧊 بارد</a>
-    <a href="cart.html" class="relative text-center text-sm">
-        🛒 السلة
-        <span id="cart-badge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1">0</span>
-    </a>
-</nav>
+    <nav class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 flex justify-around items-center shadow-lg">
+        <a href="menu.html" class="text-center text-sm font-bold">🏠 الكل</a>
+        <a href="menu.html?cat=hot" class="text-center text-sm">☕ ساخن</a>
+        <a href="menu.html?cat=cold" class="text-center text-sm">🧊 بارد</a>
+        <a href="cart.html" class="relative text-center text-sm">
+            🛒 السلة 
+            <span id="cart-badge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-2">0</span>
+        </a>
+    </nav>
 
-<div class="h-20"></div>
-<nav class="fixed bottom-0 left-0 w-full bg-white border-t p-4 flex justify-around shadow-lg">
-    <a href="menu.html" class="text-sm">🏠 الكل</a>
-    <a href="menu.html?cat=hot" class="text-sm">☕ ساخن</a>
-    <a href="menu.html?cat=cold" class="text-sm">🧊 بارد</a>
-    <a href="cart.html" class="relative text-sm">
-        🛒 السلة <span id="cart-badge" class="bg-red-500 text-white text-xs px-2 rounded-full">0</span>
-    </a>
-</nav>
-<script src="../Config & Scripts/js_supabase.js"></script>
-<script src="../Config & Scripts/js_kitchen.js"></script> ```
-*(ملاحظة: تأكد من المسار `../` للرجوع للمجلد الرئيسي ثم الدخول للمجلد المطلوب).*
-
-### 3. تأكد من "تصدير" المتغير في `js_supabase.js`
-افتح ملف `js_supabase.js` وتأكد أنك قمت بتعريف المتغير `window.supabase` بشكل صحيح، مثال:
-```javascript
-const supabaseUrl = 'رابط_مشروعك';
-const supabaseKey = 'مفتاح_مشروعك';
-window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    <script src="../Config%20%26%20Scripts/js_menu.js"></script>
 </body>
+</html>

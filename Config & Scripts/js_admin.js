@@ -1,29 +1,35 @@
 // Config & Scripts/js_admin.js
 
-// [تنبيه: دالة لإضافة صنف جديد إلى جدول items]
-async function addItem() {
-    const name = document.getElementById('itemName').value;
-    const price = document.getElementById('itemPrice').value;
+// [تنبيه: دالة لجلب وعرض الأصناف]
+async function fetchItems() {
+    const { data, error } = await supabase
+        .from('items')
+        .select('*');
 
-    if (!name || !price) {
-        alert("يرجى تعبئة جميع الحقول!");
+    if (error) {
+        console.error("خطأ في جلب الأصناف:", error);
         return;
     }
 
-    // [تنبيه: نستخدم .insert() لإضافة بيانات جديدة للجدول]
-    const { data, error } = await supabase
-        .from('items')
-        .insert([
-            { name: name, price: price }
-        ]);
+    const list = document.getElementById('items-list');
+    list.innerHTML = ""; // تفريغ الجدول
 
-    if (error) {
-        console.error("خطأ في إضافة الصنف:", error);
-        alert("حدث خطأ أثناء الإضافة.");
-    } else {
-        alert("تمت إضافة الصنف بنجاح!");
-        // [تنبيه: نقوم بتفريغ الحقول بعد الإضافة]
-        document.getElementById('itemName').value = "";
-        document.getElementById('itemPrice').value = "";
-    }
+    data.forEach(item => {
+        list.innerHTML += `
+            <tr class="border-b">
+                <td class="p-2">${item.name}</td>
+                <td class="p-2">${item.price} ريال</td>
+            </tr>
+        `;
+    });
 }
+
+// [تنبيه: تحديث دالة addItem لتشغيل fetchItems بعد الإضافة]
+async function addItem() {
+    // ... (الكود السابق للإضافة هنا) ...
+    // بعد نجاح الإضافة، أضف هذا السطر:
+    await fetchItems(); 
+}
+
+// [تنبيه: تشغيل جلب البيانات عند تحميل الصفحة]
+fetchItems();

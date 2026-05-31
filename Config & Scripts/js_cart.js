@@ -3,7 +3,7 @@
 // [تنبيه: هذا الملف لا يتطلب إضافة روابط أو مفاتيح API، فهو يعتمد على الاتصال الذي تم إعداده مسبقاً في ملف js_supabase.js]
 
 async function loadCart() {
-    // [تنبيه: نقوم بجلب رقم الطاولة من ذاكرة المتصفح التي حفظناها عند تسجيل الدخول في ملف js_app.js]
+    // [تنبيه: نقوم بجلب رقم الطاولة من ذاكرة المتصفح]
     const tableNumber = localStorage.getItem('tableNumber');
     
     if (!tableNumber) {
@@ -11,12 +11,14 @@ async function loadCart() {
         return;
     }
 
-    // [تنبيه: هنا نقوم بجلب المنتجات المرتبطة بهذه الطاولة من جدول order_items]
-    // [تنبيه: الكود يقوم بعمل "join" لجلب تفاصيل المنتج (الاسم والسعر) من جدول items]
+    // [تنبيه: نقوم بجلب بيانات السلة مع ربط جدول المنتجات للحصول على الاسم والسعر]
+    // [تنبيه: تأكد أنك قمت بعمل Foreign Key في Supabase لربط item_id بجدول items]
     const { data, error } = await supabase
         .from('order_items')
         .select(`
-            *,
+            id,
+            item_id,
+            table_no,
             items (
                 name,
                 price
@@ -25,7 +27,7 @@ async function loadCart() {
         .eq('table_no', tableNumber);
 
     if (error) {
-        // [تنبيه: إذا ظهر خطأ هنا، تأكد من أن أسماء الأعمدة (table_no, item_id) في قاعدة البيانات تطابق الكود]
+        // [تنبيه: إذا ظهر خطأ هنا، تحقق من إعدادات الربط (Foreign Key) في Supabase]
         console.error("خطأ أثناء جلب الطلبات من قاعدة البيانات:", error);
         return;
     }
@@ -33,6 +35,8 @@ async function loadCart() {
     // [تنبيه: نقوم بعرض البيانات التي جلبناها داخل عنصر HTML الذي يحمل id="cart-items"]
     const cartContainer = document.getElementById('cart-items');
     
+    if (!cartContainer) return; // الحماية في حال عدم وجود العنصر في الصفحة
+
     if (data.length === 0) {
         cartContainer.innerHTML = "<p>السلة فارغة حالياً.</p>";
         return;
@@ -41,7 +45,7 @@ async function loadCart() {
     cartContainer.innerHTML = ""; // تفريغ الحاوية قبل عرض المنتجات
     
     data.forEach(order => {
-        // [تنبيه: نتأكد من وجود بيانات في items قبل عرضها لتجنب أي أخطاء في العرض]
+        // [تنبيه: نتأكد من وجود بيانات في items قبل عرضها لتجنب أي أخطاء]
         const itemName = order.items ? order.items.name : "منتج غير معروف";
         const itemPrice = order.items ? order.items.price : "0";
 

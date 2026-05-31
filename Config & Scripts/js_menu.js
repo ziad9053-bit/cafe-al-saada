@@ -1,21 +1,29 @@
 async function loadMenu() {
-    // 1. البحث عن العنصر
     const menuContainer = document.getElementById('menu-items');
+    if (!menuContainer) return;
+
+    // 1. تحديد التصنيف من الرابط (مثلاً: menu.html?cat=hot)
+    const urlParams = new URLSearchParams(window.location.search);
+    const category = urlParams.get('cat'); 
+
+    console.log("جاري جلب الأصناف للتصنيف:", category || "الكل");
+
+    // 2. بناء الطلب
+    let query = window.supabase.from('items').select('*');
     
-    // 2. إذا لم نجد العنصر (نحن في صفحة الترحيب أو غيرها)، نتوقف بصمت دون إظهار أخطاء
-    if (!menuContainer) {
-        console.log("نحن في صفحة الترحيب، لا حاجة لعرض القائمة.");
-        return; 
+    // إذا كان هناك تصنيف في الرابط، قم بالفلترة
+    if (category) {
+        query = query.eq('category', category);
     }
 
-    console.log("جاري جلب الأصناف...");
-    const { data, error } = await window.supabase.from('items').select('*');
-    
+    const { data, error } = await query;
+
     if (error) {
-        console.error("خطأ من Supabase:", error);
+        console.error("خطأ:", error);
         return;
     }
 
+    // 3. عرض الأصناف
     menuContainer.innerHTML = ""; 
     data.forEach(item => {
         menuContainer.innerHTML += `
@@ -27,21 +35,7 @@ async function loadMenu() {
             </div>
         `;
     });
-}
-function addToCart(id, name, price) {
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    cart.push({ id, name, price });
-    localStorage.setItem('cart', JSON.stringify(cart));
     
-    // التحديث الفوري للرقم
+    // تحديث رقم السلة فوراً بعد التحميل
     updateCartCount();
-    alert(`تمت إضافة ${name}. عدد العناصر في السلة: ${cart.length}`);
 }
-
-function updateCartCount() {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const badge = document.getElementById('cart-badge');
-    if (badge) badge.innerText = cart.length;
-}
-// تشغيل الدالة
-loadMenu();

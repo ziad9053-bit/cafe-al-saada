@@ -3,27 +3,32 @@ window.addEventListener('DOMContentLoaded', () => {
     
     const container = document.getElementById('cart-items');
     if (!container) {
-        console.error("خطأ حرج: العنصر الذي يحمل id='cart-items' غير موجود في صفحة HTML!");
+        console.error("خطأ حرج: العنصر الذي يحمل id='cart-items' غير موجود!");
         return;
     }
 
-    // محاولة جلب البيانات
-    const cartData = localStorage.getItem('cart');
-    console.log("البيانات المستلمة من التخزين (localStorage):", cartData);
+    // 1. محاولة جلب البيانات من localStorage
+    let cartData = localStorage.getItem('cart');
+    
+    // 2. إذا كانت null، نحاول القراءة من window.name (مخزن احتياطي بين الصفحات)
+    if (!cartData && window.name) {
+        console.log("البيانات غير موجودة في localStorage، يتم الجلب من المخزن الاحتياطي...");
+        cartData = window.name;
+    }
 
-    // معالجة البيانات
+    console.log("البيانات الخام المستلمة:", cartData);
+
     let cart = [];
     try {
         cart = JSON.parse(cartData) || [];
     } catch (e) {
-        console.error("خطأ في قراءة بيانات السلة، تم إعادة تهيئتها:", e);
+        console.error("خطأ في معالجة البيانات:", e);
         cart = [];
     }
     
     // التحقق من وجود أصناف
     if (cart.length === 0) {
         container.innerHTML = "<p class='text-gray-500 text-center'>السلة فارغة حالياً.</p>";
-        console.log("السلة فارغة، لا يوجد ما يتم عرضه.");
         return;
     }
 
@@ -45,14 +50,19 @@ window.addEventListener('DOMContentLoaded', () => {
     console.log("تم عرض " + cart.length + " أصناف بنجاح.");
 });
 
-// دالة حذف صنف
+// دالة حذف صنف (تحدث المخزنين معاً لضمان المزامنة)
 function removeItem(index) {
     try {
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
         if (index > -1 && index < cart.length) {
             cart.splice(index, 1);
-            localStorage.setItem('cart', JSON.stringify(cart));
-            console.log("تم حذف الصنف رقم:", index);
+            
+            // تحديث كلا المخزنين
+            const updatedData = JSON.stringify(cart);
+            localStorage.setItem('cart', updatedData);
+            window.name = updatedData;
+            
+            console.log("تم حذف الصنف وتحديث البيانات.");
             location.reload();
         }
     } catch (e) {

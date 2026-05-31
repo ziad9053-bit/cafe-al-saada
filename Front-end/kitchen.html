@@ -1,16 +1,29 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>لوحة تحكم المطبخ</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 p-6">
-    <h1 class="text-3xl font-bold mb-6 text-center">طلبات المطبخ الجديدة</h1>
-    <div id="kitchen-orders" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3"></div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../Config & Scripts/js_supabase.js"></script>
-    <script src="../Config & Scripts/js_kitchen.js"></script>
-</body>
-</html>
+async function loadOrders() {
+    const { data, error } = await window.supabase
+        .from('orders')
+        .select('*')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+    if (error) return console.error(error);
+
+    const container = document.getElementById('orders-container');
+    container.innerHTML = data.map(order => `
+        <div class="bg-white p-6 rounded-xl shadow-lg border-r-4 border-yellow-500">
+            <h2 class="text-xl font-bold">طاولة رقم: ${order.table_number}</h2>
+            <ul class="my-4">
+                ${order.items.map(item => `<li>${item.name} × ${item.quantity}</li>`).join('')}
+            </ul>
+            <button onclick="markAsDone('${order.id}')" class="bg-green-600 text-white px-4 py-2 rounded">تم التحضير</button>
+        </div>
+    `).join('');
+}
+
+async function markAsDone(orderId) {
+    await window.supabase.from('orders').update({ status: 'completed' }).eq('id', orderId);
+    loadOrders(); // تحديث القائمة
+}
+
+// تحديث تلقائي كل 10 ثوانٍ لرؤية الطلبات الجديدة فور وصولها
+setInterval(loadOrders, 10000);
+loadOrders();

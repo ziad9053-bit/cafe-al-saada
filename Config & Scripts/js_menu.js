@@ -9,31 +9,36 @@ async function loadMenu() {
     if (category) query = query.eq('category', category);
 
     const { data, error } = await query;
-    if (error) { console.error(error); return; }
+    if (error) { console.error("خطأ Supabase:", error); return; }
 
     menuContainer.innerHTML = ""; 
     if (!data || data.length === 0) {
         menuContainer.innerHTML = "<p class='text-center'>لا توجد أصناف.</p>";
     } else {
         data.forEach(item => {
-            // تخزين البيانات كـ Attributes للوصول إليها برمجياً
+            // ترميز الاسم لضمان عدم ضياع أي حرف أو رمز
+            const encodedName = encodeURIComponent(item.name);
+            
             menuContainer.innerHTML += `
                 <div class="menu-item p-4 border rounded-xl bg-white shadow-sm">
                     <h3 class="font-bold">${item.name}</h3>
                     <p>السعر: ${item.price} ريال</p>
                     <button class="add-to-cart-btn mt-2 bg-green-600 text-white px-4 py-2 rounded-lg" 
-                            data-id="${item.id}" data-name="${item.name}" data-price="${item.price}">
+                            data-id="${item.id}" 
+                            data-name="${encodedName}" 
+                            data-price="${item.price}">
                             إضافة للسلة
                     </button>
                 </div>
             `;
         });
         
-        // ربط الأحداث بعد إضافة العناصر للـ DOM
+        // ربط الأحداث ديناميكياً
         document.querySelectorAll('.add-to-cart-btn').forEach(button => {
             button.addEventListener('click', (e) => {
                 const { id, name, price } = e.target.dataset;
-                addToCart(id, name, parseFloat(price));
+                // فك الترميز قبل الإضافة
+                addToCart(id, decodeURIComponent(name), parseFloat(price));
             });
         });
     }
@@ -43,7 +48,12 @@ async function loadMenu() {
 function addToCart(id, name, price) {
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
     cart.push({ id, name, price });
+    
+    // التخزين
     localStorage.setItem('cart', JSON.stringify(cart));
+    
+    // المزامنة الإضافية (لضمان انتقال البيانات عبر المتصفح)
+    window.name = JSON.stringify(cart);
     
     alert("تمت إضافة " + name + " للسلة!");
     updateCartCount();

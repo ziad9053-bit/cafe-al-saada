@@ -1,3 +1,7 @@
+// حماية: إذا لم يجد كلمة المرور في الذاكرة، أخرجه فوراً
+if (!localStorage.getItem('admin_logged_in')) {
+    window.location.href = "admin-login.html";
+}
 // Config & Scripts/js_admin.js
 
 // [تنبيه: دالة لجلب وعرض الأصناف]

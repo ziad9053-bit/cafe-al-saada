@@ -2,38 +2,24 @@ async function confirmOrder() {
     const tableNo = document.getElementById('tableNo').value;
     
     if (!tableNo) {
-        alert("يرجى إدخال رقم الطاولة أولاً!");
+        alert("يرجى إدخال رقم الطاولة قبل التأكيد!");
         return;
     }
 
-    // 1. جلب محتويات السلة من localStorage
     const cart = JSON.parse(localStorage.getItem('cart')) || [];
     
-    if (cart.length === 0) {
-        alert("السلة فارغة!");
-        return;
-    }
-
-    // 2. إرسال كل عنصر في السلة إلى جدول order_items
+    // إرسال الطلب لقاعدة البيانات مع رقم الطاولة
     for (const item of cart) {
-        const { error } = await supabase
-            .from('order_items')
-            .insert([
-                { 
-                    item_id: item.id, 
-                    quantity: item.quantity, 
-                    table_no: tableNo // [تنبيه: هنا نربط رقم الطاولة بالطلب]
-                }
-            ]);
-
-        if (error) {
-            console.error("خطأ أثناء إرسال الطلب:", error);
-            alert("حدث خطأ، حاول مرة أخرى.");
-            return;
-        }
+        await window.supabase.from('order_items').insert([
+            { 
+                item_id: item.id, 
+                quantity: item.quantity, 
+                table_no: tableNo 
+            }
+        ]);
     }
-
-    alert("تم تأكيد طلبك بنجاح! سيصل للمطبخ فوراً.");
-    localStorage.removeItem('cart'); // تفريغ السلة
-    window.location.href = 'menu.html'; // العودة للقائمة
+    
+    alert("تم إرسال طلبك بنجاح للطاولة رقم " + tableNo);
+    localStorage.removeItem('cart');
+    window.location.href = 'menu.html';
 }

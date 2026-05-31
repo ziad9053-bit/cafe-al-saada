@@ -2,7 +2,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('cart-items');
     if (!container) return;
 
-    // جلب البيانات مع تنظيفها من أي قيم غير معرفة
+    // جلب البيانات ومعالجتها
     let cart = [];
     try {
         const rawData = localStorage.getItem('cart') || window.name || '[]';
@@ -11,7 +11,7 @@ window.addEventListener('DOMContentLoaded', () => {
         cart = [];
     }
 
-    // تجميع العناصر المتطابقة (بناءً على ID) لمنع أي تكرار مرئي
+    // تجميع العناصر المتطابقة (بناءً على ID) لمنع التكرار في العرض
     const groupedCart = cart.reduce((acc, item) => {
         const found = acc.find(i => i.id === item.id);
         const quantity = parseInt(item.quantity) || 1;
@@ -28,6 +28,7 @@ window.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // عرض العناصر
     container.innerHTML = groupedCart.map((item) => `
         <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center border mb-2 transition-all">
             <div>
@@ -43,16 +44,18 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * دالة الحذف: تقوم بحذف كافة النسخ من الصنف المحدد بالـ ID مع تأكيد بصري
+ * دالة الحذف: تحذف جميع نسخ الصنف من الذاكرة المحلية
  */
 function removeItem(id, name) {
     if (!confirm(`هل أنت متأكد من حذف ${name} من السلة؟`)) return;
 
+    // جلب المصفوفة الخام وتصفيتها
     let cart = JSON.parse(localStorage.getItem('cart') || window.name || '[]');
     
-    // تصفية المصفوفة لإزالة كل العناصر التي تحمل هذا الـ ID
+    // إزالة كل العناصر التي تطابق هذا الـ ID
     const updatedCart = cart.filter(item => item.id !== id);
     
+    // حفظ التغييرات
     const updatedData = JSON.stringify(updatedCart);
     localStorage.setItem('cart', updatedData);
     window.name = updatedData;

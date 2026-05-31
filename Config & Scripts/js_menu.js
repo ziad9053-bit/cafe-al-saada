@@ -7,11 +7,21 @@ async function loadMenu() {
     const urlParams = new URLSearchParams(window.location.search);
     const category = urlParams.get('cat'); 
 
-    // بناء الطلب
-    let query = window.supabase.from('items').select('*');
-    if (category) {
-        query = query.eq('category', category);
+   function addToCart(id, name, price) {
+    console.log("جاري إضافة الصنف:", { id, name, price }); // هذا السطر سيكشف لنا الحقيقة
+    
+    if (!id || !name) {
+        alert("خطأ: بيانات الصنف غير مكتملة!");
+        return;
     }
+
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart.push({ id, name, price });
+    localStorage.setItem('cart', JSON.stringify(cart));
+    
+    updateCartCount();
+    alert("تمت إضافة " + name + " للسلة!");
+}
 
     const { data, error } = await query;
 

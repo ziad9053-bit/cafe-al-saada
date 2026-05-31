@@ -1,53 +1,28 @@
 window.addEventListener('DOMContentLoaded', () => {
-    console.log("--- بدء تحميل صفحة السلة ---");
-    
     const container = document.getElementById('cart-items');
     if (!container) return;
 
-    // جلب البيانات من localStorage أو window.name
-    let cartData = localStorage.getItem('cart') || window.name;
-    console.log("البيانات المستلمة:", cartData);
-
-    let cart = [];
-    try {
-        cart = JSON.parse(cartData) || [];
-    } catch (e) {
-        console.error("خطأ في معالجة البيانات:", e);
-        cart = [];
-    }
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     
     if (cart.length === 0) {
-        container.innerHTML = "<p class='text-gray-500 text-center'>السلة فارغة حالياً.</p>";
+        container.innerHTML = "<p class='text-gray-500 text-center'>السلة فارغة.</p>";
         return;
     }
 
-    let htmlContent = "";
-    cart.forEach((item, index) => {
-        htmlContent += `
-            <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center border">
-                <div>
-                    <h3 class="font-bold">${item.name}</h3>
-                    <p class="text-gray-600">${item.price} ريال</p>
-                </div>
-                <button onclick="removeItem(${index})" class="text-red-500 font-bold hover:text-red-700">حذف</button>
+    container.innerHTML = cart.map((item, index) => `
+        <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center border">
+            <div>
+                <h3 class="font-bold">${item.name}</h3>
+                <p class="text-gray-600">${item.price} ريال</p>
             </div>
-        `;
-    });
-    
-    container.innerHTML = htmlContent;
+            <button onclick="removeItem(${index})" class="text-red-500 font-bold">حذف</button>
+        </div>
+    `).join('');
 });
 
 function removeItem(index) {
-    try {
-        let cart = JSON.parse(localStorage.getItem('cart') || window.name || '[]');
-        if (index > -1 && index < cart.length) {
-            cart.splice(index, 1);
-            const updatedData = JSON.stringify(cart);
-            localStorage.setItem('cart', updatedData);
-            window.name = updatedData;
-            location.reload();
-        }
-    } catch (e) {
-        console.error("خطأ أثناء حذف الصنف:", e);
-    }
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    cart.splice(index, 1);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    location.reload();
 }

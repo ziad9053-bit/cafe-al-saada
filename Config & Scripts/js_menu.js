@@ -1,4 +1,15 @@
 async function loadMenu() {
+    // تحقق أولاً: هل نحن في الصفحة الصحيحة؟
+    const menuContainer = document.getElementById('menu-items');
+    if (!menuContainer) {
+        console.log("هذه ليست صفحة المنيو، لن يتم تحميل الأصناف هنا.");
+        return; // توقف عن تنفيذ باقي الكود إذا لم تجد الـ div
+    }
+
+    // هنا تضع الكود الخاص بجلب البيانات من Supabase
+    // ...
+}
+async function loadMenu() {
     console.log("جاري البدء في جلب الأصناف...");
 
     // جلب البيانات من Supabase

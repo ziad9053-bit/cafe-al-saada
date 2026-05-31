@@ -2,13 +2,21 @@ window.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('cart-items');
     if (!container) return;
 
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    // جلب البيانات من localStorage أو المخزن الاحتياطي window.name
+    let cart = [];
+    try {
+        const rawData = localStorage.getItem('cart') || window.name || '[]';
+        cart = JSON.parse(rawData);
+    } catch (e) {
+        cart = [];
+    }
     
     if (cart.length === 0) {
         container.innerHTML = "<p class='text-gray-500 text-center'>السلة فارغة.</p>";
         return;
     }
 
+    // عرض الأصناف
     container.innerHTML = cart.map((item, index) => `
         <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center border">
             <div>
@@ -21,8 +29,12 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function removeItem(index) {
-    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    let cart = JSON.parse(localStorage.getItem('cart') || window.name || '[]');
     cart.splice(index, 1);
-    localStorage.setItem('cart', JSON.stringify(cart));
+    
+    const updatedData = JSON.stringify(cart);
+    localStorage.setItem('cart', updatedData);
+    window.name = updatedData;
+    
     location.reload();
 }

@@ -16,7 +16,6 @@ async function loadMenu() {
         menuContainer.innerHTML = "<p class='text-center'>لا توجد أصناف.</p>";
     } else {
         data.forEach(item => {
-            // ترميز الاسم لمنع أي تعارض في الـ HTML
             const encodedName = encodeURIComponent(item.name);
             
             menuContainer.innerHTML += `
@@ -33,7 +32,6 @@ async function loadMenu() {
             `;
         });
         
-        // ربط الأحداث ديناميكياً (هذه الطريقة تضمن عمل الزر دائماً)
         document.querySelectorAll('.add-to-cart-btn').forEach(button => {
             button.addEventListener('click', (e) => {
                 const { id, name, price } = e.target.dataset;
@@ -44,15 +42,24 @@ async function loadMenu() {
     updateCartCount();
 }
 
+// الدالة المعدلة للدمج الذكي
 function addToCart(id, name, price) {
-    // جلب السلة
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    cart.push({ id, name, price });
     
-    // حفظ البيانات في مكانين لضمان عدم الضياع
+    // البحث عن الصنف إذا كان موجوداً مسبقاً
+    const existingItem = cart.find(item => item.id === id);
+    
+    if (existingItem) {
+        // زيادة الكمية إذا وجد الصنف
+        existingItem.quantity = (existingItem.quantity || 1) + 1;
+    } else {
+        // إضافة صنف جديد مع كمية أولية 1
+        cart.push({ id, name, price, quantity: 1 });
+    }
+    
     const cartString = JSON.stringify(cart);
     localStorage.setItem('cart', cartString);
-    window.name = cartString; // مخزن احتياطي للمزامنة
+    window.name = cartString; 
     
     alert("تمت إضافة " + name + " للسلة!");
     updateCartCount();
@@ -62,7 +69,9 @@ function updateCartCount() {
     const badge = document.getElementById('cart-badge');
     if (badge) {
         const cart = JSON.parse(localStorage.getItem('cart') || window.name || '[]');
-        badge.innerText = cart.length;
+        // حساب مجموع الكميات
+        const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        badge.innerText = totalItems;
     }
 }
 

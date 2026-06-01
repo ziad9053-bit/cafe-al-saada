@@ -1,20 +1,18 @@
 /**
- * ملف: js_cart.js (النسخة النهائية والمحصنة)
+ * ملف: js_cart.js (النسخة المعدلة لحل مشكلة total_price)
  */
 
-// 1. جلب بيانات السلة مع تنظيف البيانات التالفة
 function getCart() {
     try {
         const data = localStorage.getItem('cart');
         return data ? JSON.parse(data) : [];
     } catch (e) {
-        console.error("خطأ في قراءة بيانات السلة، يتم إعادة تعيينها:", e);
+        console.error("خطأ في قراءة بيانات السلة:", e);
         localStorage.removeItem('cart');
         return [];
     }
 }
 
-// 2. عرض السلة
 function renderCart() {
     const container = document.getElementById('cart-items');
     const totalEl = document.getElementById('cart-total');
@@ -52,7 +50,6 @@ function renderCart() {
     if (totalEl) totalEl.innerText = total + " ريال";
 }
 
-// 3. تحديث الكمية (مع التأكد من تحديث واجهة السلة فوراً)
 function updateQty(index, change) {
     let cart = getCart();
     cart[index].quantity = (parseInt(cart[index].quantity) || 1) + change;
@@ -60,14 +57,13 @@ function updateQty(index, change) {
     
     localStorage.setItem('cart', JSON.stringify(cart));
     renderCart();
-    // إذا كان لديك دالة لتحديث الشارة (Badge) في الشريط السفلي، استدعها هنا:
     if (typeof updateCartBadge === 'function') updateCartBadge();
 }
 
-// 4. تأكيد الطلب (النسخة المحصنة)
+// الدالة المعدلة:
 async function confirmOrder() {
     const btn = document.getElementById('confirm-btn');
-    if (typeof window.supabase === 'undefined') return alert("جاري تهيئة النظام، يرجى الانتظار...");
+    if (typeof window.supabase === 'undefined') return alert("جاري تهيئة النظام...");
 
     const tableInput = document.getElementById('tableNo');
     const tableNo = tableInput ? tableInput.value : null;
@@ -76,14 +72,18 @@ async function confirmOrder() {
     if (!tableNo) return alert("يرجى إدخال رقم الطاولة");
     if (cart.length === 0) return alert("السلة فارغة");
 
-    // منع الضغط المتكرر
+    // 1. حساب الإجمالي (حل مشكلة total_price)
+    const totalAmount = cart.reduce((sum, item) => sum + (parseFloat(item.price) * (parseInt(item.quantity) || 1)), 0);
+
     btn.disabled = true;
     btn.innerText = "جاري الإرسال...";
 
+    // 2. إرسال البيانات مع حقل total_price
     const orderData = {
         table_no: parseInt(tableNo),
-        items: cart, // Supabase يتعامل مع المصفوفات مباشرة إذا كان العمود jsonb
-        status: 'pending'
+        items: cart,
+        status: 'pending',
+        total_price: totalAmount // تمت إضافة هذا الحقل
     };
 
     const { data, error } = await window.supabase.from('orders').insert([orderData]).select('id');
@@ -95,13 +95,11 @@ async function confirmOrder() {
         return alert("خطأ في الإرسال: " + error.message);
     }
 
-    // النجاح
     localStorage.removeItem('cart');
-    alert("تم إرسال طلبك بنجاح! سيتم تحويلك للصفحة الرئيسية.");
-    window.location.href = "index.html"; // أو أي صفحة تريدها
+    alert("تم إرسال طلبك بنجاح!");
+    window.location.href = "index.html";
 }
 
-// التشغيل
 window.addEventListener('DOMContentLoaded', () => {
     renderCart();
     const confirmBtn = document.getElementById('confirm-btn');

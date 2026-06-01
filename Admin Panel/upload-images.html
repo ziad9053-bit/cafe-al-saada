@@ -11,7 +11,7 @@
     <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-sm border">
         <h2 class="text-xl font-bold mb-4">رفع صور جديدة</h2>
         <input type="file" id="fileInput" accept="image/*" class="w-full p-2 border rounded mb-4">
-        <button onclick="uploadImage()" id="uploadBtn" class="w-full bg-blue-600 text-white py-2 rounded">رفع الصورة</button>
+        <button onclick="uploadImage()" id="uploadBtn" class="w-full bg-blue-600 text-white py-2 rounded font-bold">رفع الصورة</button>
     </div>
 
     <script>
@@ -20,41 +20,41 @@
             const file = fileInput.files[0];
             const btn = document.getElementById('uploadBtn');
             
-            if (!file) return alert("اختر صورة");
+            if (!file) return alert("اختر صورة أولاً");
             
             btn.disabled = true;
             btn.innerText = "جاري الرفع...";
 
             try {
-                // تنظيف اسم الملف لتجنب مشاكل الـ S3
+                // تنظيف اسم الملف
                 const cleanName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
                 const fileName = `assets/${Date.now()}_${cleanName}`;
                 
-                // 1. الرفع للـ Storage باستخدام العميل المهيأ في dependencies.js
+                // 1. الرفع للـ Storage
                 const { error: uploadError } = await supabase.storage
                     .from('menu-images')
-                    .upload(fileName, file);
+                    .upload(fileName, file, { upsert: true });
                 
                 if (uploadError) throw uploadError;
 
                 // 2. الحصول على الرابط
                 const { data } = supabase.storage.from('menu-images').getPublicUrl(fileName);
 
-                // 3. حفظ الرابط في جدول gallery
+                // 3. حفظ الرابط في قاعدة البيانات
                 const { error: dbError } = await supabase.from('gallery').insert([
                     { name: file.name, image_url: data.publicUrl }
                 ]);
                 
                 if (dbError) throw dbError;
 
-                alert("تم رفع الصورة بنجاح!");
-                btn.innerText = "رفع الصورة";
+                alert("تم رفع الصورة وإضافتها للمكتبة بنجاح!");
                 fileInput.value = '';
             } catch (err) {
-                console.error("خطأ:", err);
-                alert("خطأ: " + err.message);
+                console.error("تفاصيل الخطأ:", err);
+                alert("فشل العملية: " + err.message);
             } finally {
                 btn.disabled = false;
+                btn.innerText = "رفع الصورة";
             }
         }
     </script>

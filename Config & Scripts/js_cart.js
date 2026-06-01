@@ -1,4 +1,5 @@
 async function confirmOrder() {
+    // 1. فحص جاهزية Supabase
     if (typeof window.supabase === 'undefined') {
         return alert("جاري تهيئة النظام، يرجى الانتظار ثانية.");
     }
@@ -7,37 +8,41 @@ async function confirmOrder() {
     const tableNo = tableInput ? tableInput.value : null;
     const cart = getCart();
 
+    // 2. التحقق من المدخلات
     if (!tableNo) return alert("يرجى إدخال رقم الطاولة");
     if (cart.length === 0) return alert("السلة فارغة");
 
-    // نستخدم هيكل إدخال أكثر أماناً وتوافقاً
+    // 3. تجهيز البيانات (تم تصحيح اسم العمود إلى table_no)
     const orderData = {
-        table_number: parseInt(tableNo),
-        items: JSON.parse(JSON.stringify(cart)), // نضمن تحويلها لـ JSON صريح
+        table_no: parseInt(tableNo), // الاسم مطابق تماماً لقاعدة البيانات
+        items: JSON.parse(JSON.stringify(cart)), 
         status: 'pending'
     };
 
-    // التعديل: قمنا بإزالة .select() مؤقتاً لتجنب خطأ 400
-    // وقمت بتغيير صيغة الإدخال
+    // 4. تنفيذ الإدخال
     const { data, error } = await window.supabase
         .from('orders')
         .insert([orderData])
-        .select('id'); // نطلب فقط الـ id لضمان عدم التعارض
+        .select('id'); // استرجاع المعرف فقط
 
+    // 5. التعامل مع الأخطاء
     if (error) {
         console.error("Supabase Error Details:", error);
         return alert("خطأ في الإرسال: " + error.message);
     }
 
-    // إذا تم الإدخال بنجاح، ستكون data موجودة
+    // 6. نجاح العملية
     if (data && data.length > 0) {
         const orderId = data[0].id;
+        
+        // تنظيف السلة وحفظ الطلب المعلق
         localStorage.removeItem('cart');
         localStorage.setItem('pendingOrderId', orderId);
 
+        // تحديث الواجهة فوراً
         showWaitScreen(orderId);
         monitorOrderStatus(orderId);
     } else {
-        alert("خطأ: لم يتم استرجاع رقم الطلب.");
+        alert("خطأ: لم يتم استرجاع رقم الطلب من السيرفر.");
     }
 }

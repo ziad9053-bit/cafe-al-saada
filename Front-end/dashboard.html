@@ -5,24 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- استدعاء ملف اللغة الجديد -->
+    <script src="../Config%20%26%20Scripts/language.js"></script>
 </head>
 <body class="bg-gray-50 min-h-screen p-8">
 
-    <div class="max-w-md mx-auto text-center">
-        <h1 class="text-3xl font-bold text-gray-800 mb-8">لوحة تحكم المقهى</h1>
+    <!-- الأزرار العلوية الثابتة -->
+    <!-- زر تغيير اللغة (أعلى يسار) -->
+    <button onclick="changeLanguage()" class="fixed top-4 left-4 z-50 bg-gray-800 text-white px-4 py-2 rounded-full shadow-lg hover:bg-gray-900 transition text-sm">
+        EN / AR
+    </button>
+
+    <!-- زر دخول المدير (أعلى يمين) -->
+    <a href="../Admin%20Panel/admin-login.html" class="fixed top-4 right-4 z-50 bg-orange-600 text-white px-4 py-2 rounded-full shadow-lg hover:bg-orange-700 transition text-sm">
+        ⚙️ دخول المدير
+    </a>
+
+    <!-- المحتوى الأساسي -->
+    <div class="max-w-md mx-auto text-center mt-16">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8" data-key="dashboard_title">لوحة تحكم المقهى</h1>
         
         <div class="grid gap-4">
             <a href="menu.html" class="block bg-white p-6 rounded-2xl shadow-md border hover:border-orange-500 transition">
                 <span class="text-2xl">☕</span>
-                <h2 class="font-bold text-xl mt-2">تصفح القائمة</h2>
+                <h2 class="font-bold text-xl mt-2" data-key="menu">تصفح القائمة</h2>
             </a>
 
+            <!-- هذا هو زر المطبخ الذي كان موجوداً -->
             <a href="kitchen.html" class="block bg-white p-6 rounded-2xl shadow-md border hover:border-orange-500 transition">
                 <span class="text-2xl">👨‍🍳</span>
-                <h2 class="font-bold text-xl mt-2">لوحة المطبخ</h2>
+                <h2 class="font-bold text-xl mt-2" data-key="kitchen">لوحة المطبخ</h2>
             </a>
             
-            <a href="../index.html" class="text-gray-400 hover:text-gray-600 mt-6 underline">العودة للواجهة</a>
+            <a href="../index.html" class="text-gray-400 hover:text-gray-600 mt-6 underline" data-key="back">العودة للواجهة</a>
         </div>
     </div>
 

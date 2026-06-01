@@ -1,5 +1,5 @@
 /**
- * ملف: js_menu.js (النسخة المتوافقة تماماً مع نظام الطلبات الجديد)
+ * ملف: js_menu.js (النسخة المصححة لالتقاط الصورة)
  */
 
 async function loadMenu() {
@@ -28,7 +28,7 @@ async function loadMenu() {
                 <p class="text-orange-600 font-bold mt-1">${item.price} ريال</p>
             </div>
             <button class="add-to-cart-btn bg-green-600 text-white p-3 rounded-full hover:bg-green-700 transition flex-shrink-0 shadow-sm" 
-                    data-id="${item.id}" data-name="${item.name}" data-price="${item.price}">
+                    data-id="${item.id}" data-name="${item.name}" data-price="${item.price}" data-image="${item.image_url || ''}">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
@@ -39,20 +39,21 @@ async function loadMenu() {
     updateCartCount();
 }
 
-function addToCart(id, name, price) {
+// تعديل دالة الإضافة لالتقاط الصورة من الـ dataset
+function addToCart(id, name, price, imageUrl) {
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const existingItem = cart.find(item => item.id === id);
     
     if (existingItem) {
         existingItem.quantity = (parseInt(existingItem.quantity) || 1) + 1;
     } else {
-        cart.push({ id, name, price, quantity: 1 });
+        // هنا تم إضافة imageUrl إلى السلة
+        cart.push({ id, name, price, quantity: 1, image_url: imageUrl });
     }
     
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
     
-    // تحسين تجربة المستخدم: وميض بسيط أو تحديث للأيقونة بدلاً من الـ alert المزعج
     const badge = document.getElementById('cart-badge');
     if(badge) {
         badge.classList.add('scale-125');
@@ -60,20 +61,20 @@ function addToCart(id, name, price) {
     }
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    loadMenu();
+    document.getElementById('menu-items')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('.add-to-cart-btn');
+        if (btn) {
+            const { id, name, price, image } = btn.dataset; // التقاط الصورة من الزر
+            addToCart(id, name, parseFloat(price), image);
+        }
+    });
+});
+
 function updateCartCount() {
     const badge = document.getElementById('cart-badge');
     if (!badge) return;
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     badge.innerText = cart.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    loadMenu();
-    document.getElementById('menu-items')?.addEventListener('click', (e) => {
-        const btn = e.target.closest('.add-to-cart-btn');
-        if (btn) {
-            const { id, name, price } = btn.dataset;
-            addToCart(id, name, parseFloat(price));
-        }
-    });
-});

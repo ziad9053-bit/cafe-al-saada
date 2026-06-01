@@ -15,8 +15,11 @@
         <div class="space-y-4">
             <input type="text" id="name" placeholder="اسم الصنف" class="w-full p-3 border rounded-xl">
             <input type="number" id="price" placeholder="السعر" class="w-full p-3 border rounded-xl">
-            <input type="file" id="imageFile" accept="image/png, image/jpeg, image/webp" class="w-full p-3 border rounded-xl">
             <input type="text" id="category" placeholder="التصنيف" class="w-full p-3 border rounded-xl">
+            
+            <label class="block text-sm font-bold text-slate-600">اختر صورة من المكتبة:</label>
+            <div id="galleryGrid" class="grid grid-cols-4 gap-2 border p-2 rounded-xl h-40 overflow-y-auto">
+                </div>
             
             <button onclick="handleSave()" id="saveBtn" class="w-full bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 transition">
                 حفظ الصنف
@@ -25,50 +28,49 @@
     </div>
 
     <script>
-        async function handleSave() {
-            const btn = document.getElementById('saveBtn');
-            const fileInput = document.getElementById('imageFile');
-            const file = fileInput.files[0];
-            
-            if (!document.getElementById('name').value || !file) {
-                return alert("يرجى إدخال البيانات واختيار صورة");
-            }
+        let selectedImageUrl = "";
 
+        // جلب الصور عند تحميل الصفحة
+        window.onload = async () => {
+            const { data, error } = await supabase.from('gallery').select('*');
+            if (error) return console.error("خطأ في جلب الصور:", error);
+            
+            const grid = document.getElementById('galleryGrid');
+            data.forEach(img => {
+                grid.innerHTML += `
+                    <img src="${img.image_url}" onclick="selectImage('${img.image_url}', this)" 
+                         class="cursor-pointer rounded border-2 border-transparent hover:border-orange-500 w-full h-16 object-cover">
+                `;
+            });
+        };
+
+        function selectImage(url, element) {
+            selectedImageUrl = url;
+            document.querySelectorAll('#galleryGrid img').forEach(img => img.classList.remove('border-orange-500'));
+            element.classList.add('border-orange-500');
+        }
+
+        async function handleSave() {
+            if (!selectedImageUrl) return alert("يرجى اختيار صورة من المكتبة أولاً");
+
+            const btn = document.getElementById('saveBtn');
             btn.disabled = true;
-            btn.innerText = "جاري المعالجة...";
+            btn.innerText = "جاري الحفظ...";
 
             try {
-                // 1. تحضير اسم الملف (استخدام اسم نظيف)
-                const fileExt = file.name.split('.').pop();
-                const fileName = `item_${Date.now()}.${fileExt}`;
-
-                // 2. الرفع بدون تمرير contentType يدوياً (Supabase يكتشفه تلقائياً من الملف)
-                const { error: uploadError } = await supabase.storage
-                    .from('menu-images')
-                    .upload(fileName, file);
-
-                if (uploadError) throw uploadError;
-
-                // 3. الحصول على الرابط
-                const { data } = supabase.storage.from('menu-images').getPublicUrl(fileName);
-
-                // 4. الحفظ في قاعدة البيانات
-                const { error: dbError } = await supabase.from('items').insert([{
+                const { error } = await supabase.from('items').insert([{
                     name: document.getElementById('name').value,
                     price: parseFloat(document.getElementById('price').value),
                     category: document.getElementById('category').value,
-                    image_url: data.publicUrl,
+                    image_url: selectedImageUrl,
                     is_available: true
                 }]);
 
-                if (dbError) throw dbError;
-                
+                if (error) throw error;
                 alert("تمت الإضافة بنجاح!");
                 location.reload();
-
             } catch (error) {
-                console.error("خطأ:", error);
-                alert("فشل العملية: " + (error.message || "تأكد من إعدادات الـ Bucket"));
+                alert("فشل الحفظ: " + error.message);
                 btn.disabled = false;
                 btn.innerText = "حفظ الصنف";
             }

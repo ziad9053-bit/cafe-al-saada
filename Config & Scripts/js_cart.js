@@ -1,19 +1,20 @@
 /**
- * ملف: js_cart.js - النسخة المصححة للعمل مع LocalStorage
+ * ملف: js_cart.js (النسخة النهائية والمحصنة)
  */
 
-// دالة لجلب البيانات من السلة بضمان
+// 1. جلب بيانات السلة مع تنظيف البيانات التالفة
 function getCart() {
-    const data = localStorage.getItem('cart');
     try {
+        const data = localStorage.getItem('cart');
         return data ? JSON.parse(data) : [];
     } catch (e) {
-        console.error("خطأ في قراءة بيانات السلة:", e);
+        console.error("خطأ في قراءة بيانات السلة، يتم إعادة تعيينها:", e);
+        localStorage.removeItem('cart');
         return [];
     }
 }
 
-// دالة عرض السلة مع معالجة الأخطاء
+// 2. عرض السلة
 function renderCart() {
     const container = document.getElementById('cart-items');
     const totalEl = document.getElementById('cart-total');
@@ -51,18 +52,22 @@ function renderCart() {
     if (totalEl) totalEl.innerText = total + " ريال";
 }
 
-// دالة تحديث الكمية
+// 3. تحديث الكمية (مع التأكد من تحديث واجهة السلة فوراً)
 function updateQty(index, change) {
     let cart = getCart();
     cart[index].quantity = (parseInt(cart[index].quantity) || 1) + change;
     if (cart[index].quantity <= 0) cart.splice(index, 1);
+    
     localStorage.setItem('cart', JSON.stringify(cart));
     renderCart();
+    // إذا كان لديك دالة لتحديث الشارة (Badge) في الشريط السفلي، استدعها هنا:
+    if (typeof updateCartBadge === 'function') updateCartBadge();
 }
 
-// دالة تأكيد الطلب المحدثة (مع table_no)
+// 4. تأكيد الطلب (النسخة المحصنة)
 async function confirmOrder() {
-    if (typeof window.supabase === 'undefined') return alert("جاري تهيئة النظام...");
+    const btn = document.getElementById('confirm-btn');
+    if (typeof window.supabase === 'undefined') return alert("جاري تهيئة النظام، يرجى الانتظار...");
 
     const tableInput = document.getElementById('tableNo');
     const tableNo = tableInput ? tableInput.value : null;
@@ -71,32 +76,34 @@ async function confirmOrder() {
     if (!tableNo) return alert("يرجى إدخال رقم الطاولة");
     if (cart.length === 0) return alert("السلة فارغة");
 
+    // منع الضغط المتكرر
+    btn.disabled = true;
+    btn.innerText = "جاري الإرسال...";
+
     const orderData = {
         table_no: parseInt(tableNo),
-        items: JSON.parse(JSON.stringify(cart)),
+        items: cart, // Supabase يتعامل مع المصفوفات مباشرة إذا كان العمود jsonb
         status: 'pending'
     };
 
     const { data, error } = await window.supabase.from('orders').insert([orderData]).select('id');
 
     if (error) {
+        btn.disabled = false;
+        btn.innerText = "تأكيد الطلب";
         console.error("خطأ Supabase:", error);
         return alert("خطأ في الإرسال: " + error.message);
     }
 
+    // النجاح
     localStorage.removeItem('cart');
-    alert("تم إرسال طلبك بنجاح!");
-    window.location.reload();
+    alert("تم إرسال طلبك بنجاح! سيتم تحويلك للصفحة الرئيسية.");
+    window.location.href = "index.html"; // أو أي صفحة تريدها
 }
 
-// التشغيل عند التحميل
+// التشغيل
 window.addEventListener('DOMContentLoaded', () => {
-    // تنظيف مؤقت إذا لزم الأمر (يمكن إزالة هذا السطر لاحقاً)
-    if(localStorage.getItem('pendingOrderId')) {
-        // يمكنك إضافته هنا إذا كنت تريد مراجعة الطلب المعلق
-    }
     renderCart();
-    
     const confirmBtn = document.getElementById('confirm-btn');
     if (confirmBtn) confirmBtn.addEventListener('click', confirmOrder);
 });

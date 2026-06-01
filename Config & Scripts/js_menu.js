@@ -1,5 +1,5 @@
 /**
- * ملف: js_menu.js (المعدل للمراقبة)
+ * ملف: js_menu.js (المعدل والمثالي)
  */
 
 async function loadMenu() {
@@ -10,17 +10,14 @@ async function loadMenu() {
         return;
     }
 
-    // التأكد من وجود Supabase قبل الاستخدام
     if (typeof window.supabase === 'undefined') {
         console.error("خطأ: مكتبة Supabase لم تُحمل أو لم يتم تهيئتها!");
-        menuContainer.innerHTML = "<p class='text-center text-red-500'>خطأ في الاتصال (Supabase غير موجود).</p>";
         return;
     }
 
     const urlParams = new URLSearchParams(window.location.search);
     const category = urlParams.get('cat'); 
 
-    // جلب البيانات
     console.log("2. جاري جلب البيانات من جدول 'items'...");
     let query = window.supabase.from('items').select('*');
     if (category) query = query.eq('category', category);
@@ -37,14 +34,21 @@ async function loadMenu() {
 
     menuContainer.innerHTML = ""; 
     if (!data || data.length === 0) {
-        menuContainer.innerHTML = "<p class='text-center col-span-3'>لا توجد أصناف حالياً.</p>";
+        menuContainer.innerHTML = "<p class='text-center col-span-full'>لا توجد أصناف حالياً.</p>";
     } else {
         data.forEach(item => {
+            // التحقق من الرابط: إذا كان موجوداً نستخدمه، وإلا نضع صورة افتراضية
+            const imageUrl = item.image_url ? item.image_url : 'https://via.placeholder.com/300';
+            
             menuContainer.innerHTML += `
-                <div class="menu-item p-4 border rounded-xl bg-white shadow-sm transition hover:shadow-md">
-                    <h3 class="font-bold text-lg">${item.name}</h3>
-                    <p class="text-gray-600 mb-2">السعر: ${item.price} ريال</p>
-                    <button class="add-to-cart-btn w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition" 
+                <div class="menu-item p-4 border rounded-2xl bg-white shadow-sm transition hover:shadow-lg flex flex-col">
+                    <img src="${imageUrl}" alt="${item.name}" 
+                         class="w-full h-40 object-cover rounded-xl mb-4 bg-gray-100">
+                    
+                    <h3 class="font-bold text-lg mb-1">${item.name}</h3>
+                    <p class="text-gray-600 mb-4">السعر: ${item.price} ريال</p>
+                    
+                    <button class="add-to-cart-btn mt-auto w-full bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700 transition" 
                             data-id="${item.id}" 
                             data-name="${item.name}" 
                             data-price="${item.price}">

@@ -3,20 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم</title>
-    
+    <title>لوحة العامل</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="../Config%20&%20Scripts/language.js"></script>
-    
     <script src="../Config%20&%20Scripts/js_auth_config.js"></script>
-    
     <script>
-        // نظام حماية الصفحة: لا يُسمح بالدخول إلا لـ admin أو worker
         document.addEventListener('DOMContentLoaded', () => {
             const role = localStorage.getItem('role');
-            if (role !== 'admin' && role !== 'worker') {
-                // إذا لم يكن مسجلاً، أعده لصفحة تسجيل دخول المدير/الموظف
+            // تأكد أن العامل فقط هو من يرى هذه الصفحة
+            if (role !== 'worker' && role !== 'admin') {
                 window.location.href = "../Admin%20Panel/admin-login.html";
             }
         });
@@ -24,29 +19,21 @@
 </head>
 <body class="bg-gray-50 min-h-screen p-8">
 
-    <button onclick="changeLanguage()" class="fixed top-4 left-4 z-50 bg-gray-800 text-white px-4 py-2 rounded-full shadow-lg hover:bg-gray-900 transition text-sm">
-        EN / AR
-    </button>
-
-    <a href="../Admin%20Panel/admin-login.html" class="fixed top-4 right-4 z-50 bg-orange-600 text-white px-4 py-2 rounded-full shadow-lg hover:bg-orange-700 transition text-sm">
-        ⚙️ دخول المدير
-    </a>
-
     <div class="max-w-md mx-auto text-center mt-16">
-        <h1 class="text-3xl font-bold text-gray-800 mb-8" data-key="dashboard_title">لوحة تحكم المقهى</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">لوحة تحكم العامل</h1>
         
         <div class="grid gap-4">
-            <a href="menu.html" class="block bg-white p-6 rounded-2xl shadow-md border hover:border-orange-500 transition">
+            <a href="menu.html" class="block bg-blue-50 p-6 rounded-2xl shadow-md border border-blue-200 hover:border-blue-500 transition">
                 <span class="text-2xl">☕</span>
-                <h2 class="font-bold text-xl mt-2" data-key="menu">تصفح القائمة</h2>
+                <h2 class="font-bold text-xl mt-2">تصفح القائمة</h2>
             </a>
 
-            <a href="kitchen.html" class="block bg-white p-6 rounded-2xl shadow-md border hover:border-orange-500 transition">
+            <a href="kitchen.html" class="block bg-green-50 p-6 rounded-2xl shadow-md border border-green-200 hover:border-green-500 transition">
                 <span class="text-2xl">👨‍🍳</span>
-                <h2 class="font-bold text-xl mt-2" data-key="kitchen">لوحة المطبخ</h2>
+                <h2 class="font-bold text-xl mt-2">استقبال الطلبات</h2>
             </a>
             
-            <a href="../index.html" class="text-gray-400 hover:text-gray-600 mt-6 underline" data-key="back">العودة للواجهة</a>
+            <a href="../index.html" class="text-gray-400 hover:text-gray-600 mt-6 underline">العودة للواجهة الرئيسية</a>
         </div>
     </div>
 

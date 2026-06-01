@@ -1,30 +1,37 @@
 <head>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="../Config%20&%20Scripts/js_auth_config.js"></script>
 </head>
-<body>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
     <div class="bg-white p-8 rounded-xl shadow-md w-96 text-center">
         <h2 class="text-xl font-bold mb-4">تسجيل الدخول</h2>
-        <input type="password" id="pass" placeholder="كلمة المرور" class="w-full p-2 border rounded mb-4">
-        <button onclick="checkLogin()" class="w-full bg-orange-600 text-white py-2 rounded hover:bg-orange-700">
+        <input type="password" id="pass" placeholder="كلمة المرور" class="w-full p-2 border rounded mb-4 focus:outline-none focus:border-orange-500">
+        <button onclick="checkLogin()" class="w-full bg-orange-600 text-white py-2 rounded hover:bg-orange-700 transition">
             دخول
         </button>
     </div>
 
     <script>
-        function checkLogin() {
+        async function checkLogin() {
             const pass = document.getElementById('pass').value;
             
-            // تحقق من أن الدالة verifyLogin موجودة في js_auth_config.js
             if (typeof verifyLogin !== 'function') {
-                console.error("خطأ: دالة verifyLogin غير معرفة!");
+                console.error("خطأ: دالة verifyLogin غير معرفة في js_auth_config.js");
                 return;
             }
 
+            // تحقق من الدور بناءً على كلمة المرور
             if (verifyLogin(pass, 'admin')) {
+                // المدير يذهب للوحة تحكم المدير
+                localStorage.setItem('role', 'admin'); // تأكد من حفظ الدور
                 window.location.href = "admin-dashboard.html";
-            } else if (verifyLogin(pass, 'worker')) {
-                window.location.href = "../Front-end/kitchen.html";
-            } else {
+            } 
+            else if (verifyLogin(pass, 'worker')) {
+                // العامل يذهب للوحة تحكم العامل (dashboard) وليس للمطبخ مباشرة
+                localStorage.setItem('role', 'worker'); 
+                window.location.href = "../Front-end/dashboard.html";
+            } 
+            else {
                 alert("كلمة المرور غير صحيحة!");
             }
         }

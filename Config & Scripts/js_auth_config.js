@@ -1,14 +1,23 @@
 /**
  * ملف: js_auth_config.js
- * المسؤول عن تخزين كلمات المرور وتحديد الصلاحيات
+ * المسؤول عن إدارة كلمات المرور والصلاحيات والجلسات
  */
+
 const AUTH_CONFIG = {
-    ADMIN_PASS: "123456", // 1111
-    WORKER_PASS: "0000",  // 2424
+    ADMIN_PASS: "123456", // كلمة مرور المدير
+    WORKER_PASS: "0000",  // كلمة مرور العامل
 };
 
-// دالة التحقق من الدخول
+/**
+ * دالة التحقق من الدخول
+ * @param {string} password - كلمة المرور المدخلة
+ * @param {string} type - نوع المستخدم ('admin' أو 'worker')
+ * @returns {boolean}
+ */
 function verifyLogin(password, type) {
+    // تنظيف الجلسة السابقة قبل المحاولة الجديدة
+    logout();
+
     if (type === 'admin' && password === AUTH_CONFIG.ADMIN_PASS) {
         localStorage.setItem('role', 'admin');
         return true;
@@ -18,4 +27,21 @@ function verifyLogin(password, type) {
         return true;
     }
     return false;
+}
+
+/**
+ * دالة تسجيل الخروج (لمسح الجلسة)
+ */
+function logout() {
+    localStorage.removeItem('role');
+}
+
+/**
+ * دالة للتحقق مما إذا كان المستخدم مسجلاً للدخول بالفعل
+ * @param {string} requiredRole - الدور المطلوب (مثلاً 'admin')
+ * @returns {boolean}
+ */
+function checkAccess(requiredRole) {
+    const currentRole = localStorage.getItem('role');
+    return currentRole === requiredRole;
 }

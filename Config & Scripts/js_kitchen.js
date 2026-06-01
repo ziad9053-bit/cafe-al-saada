@@ -1,5 +1,5 @@
 /**
- * ملف: js_kitchen.js (النسخة المحدثة والمرتبطة بنظام QR)
+ * ملف: js_kitchen.js (النسخة المصححة)
  */
 
 async function loadOrders() {
@@ -29,7 +29,7 @@ async function loadOrders() {
 
     container.innerHTML = data.map(order => `
         <div class="bg-white p-6 rounded-xl shadow-lg border-r-4 border-yellow-500">
-            <h2 class="text-xl font-bold">طاولة رقم: ${order.table_number || 'غير معروف'}</h2>
+            <h2 class="text-xl font-bold">طاولة رقم: ${order.table_no || 'غير معروف'}</h2>
             <ul class="my-4 text-gray-700">
                 ${Array.isArray(order.items) ? order.items.map(item => `<li>${item.name} × ${item.quantity}</li>`).join('') : '<li>لا توجد أصناف</li>'}
             </ul>
@@ -48,22 +48,20 @@ async function markAsDone(orderId) {
         
     if (error) {
         console.error("خطأ أثناء التحديث:", error);
+        alert("فشل تحديث حالة الطلب");
     } else {
-        loadOrders(); // تحديث القائمة فوراً بعد الضغط
+        loadOrders(); 
     }
 }
 
-// دالة لجعل المطبخ يستقبل الطلبات فوراً (Realtime)
 function setupRealtime() {
     window.supabase.channel('kitchen_channel')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, 
         () => {
-            loadOrders(); // تحديث تلقائي عند وصول طلب جديد
+            loadOrders(); 
         }).subscribe();
 }
 
-// التشغيل الأولي
 loadOrders();
 setupRealtime();
-// الاحتفاظ بـ setInterval كخيار احتياطي لضمان الموثوقية
 setInterval(loadOrders, 30000);

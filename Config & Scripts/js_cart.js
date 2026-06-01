@@ -1,9 +1,17 @@
 /**
- * ملف: js_cart.js (النسخة النهائية مع دعم QR والتحول اللوني)
+ * ملف: js_cart.js (النسخة النهائية والمثالية)
  */
 
 window.addEventListener('DOMContentLoaded', () => {
-    renderCart();
+    // التحقق من وجود طلب معلق عند تحميل الصفحة
+    const pendingOrderId = localStorage.getItem('pendingOrderId');
+    if (pendingOrderId) {
+        showWaitScreen(pendingOrderId);
+        monitorOrderStatus(pendingOrderId);
+    } else {
+        renderCart();
+    }
+    
     const confirmBtn = document.getElementById('confirm-btn');
     if (confirmBtn) confirmBtn.addEventListener('click', confirmOrder);
 });
@@ -15,10 +23,7 @@ function getCart() {
 function updateQty(index, change) {
     let cart = getCart();
     cart[index].quantity = (parseInt(cart[index].quantity) || 1) + change;
-    
-    if (cart[index].quantity <= 0) {
-        cart.splice(index, 1);
-    }
+    if (cart[index].quantity <= 0) cart.splice(index, 1);
     localStorage.setItem('cart', JSON.stringify(cart));
     renderCart();
 }
@@ -65,7 +70,6 @@ async function confirmOrder() {
     if (!tableNo) return alert("يرجى إدخال رقم الطاولة");
     if (cart.length === 0) return alert("السلة فارغة");
 
-    // إرسال الطلب
     const { data, error } = await window.supabase.from('orders').insert([
         { table_number: parseInt(tableNo), items: cart, status: 'pending' }
     ]).select();
@@ -73,9 +77,14 @@ async function confirmOrder() {
     if (error) return alert("خطأ في الإرسال: " + error.message);
 
     const orderId = data[0].id;
-    localStorage.removeItem('cart'); // مسح السلة بعد نجاح الطلب
+    localStorage.removeItem('cart');
+    localStorage.setItem('pendingOrderId', orderId); // حفظ رقم الطلب
 
-    // تغيير الواجهة
+    showWaitScreen(orderId);
+    monitorOrderStatus(orderId);
+}
+
+function showWaitScreen(orderId) {
     document.body.innerHTML = `
         <div class="h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
             <div id="status-card" class="w-full max-w-sm bg-amber-500 p-8 rounded-3xl shadow-xl text-white transition-colors duration-1000">
@@ -87,15 +96,12 @@ async function confirmOrder() {
         </div>
     `;
 
-    // توليد الكيوار (مع التحقق من وجود المكتبة)
     if (typeof QRCode !== 'undefined') {
         new QRCode(document.getElementById("qrcode"), {
             text: `ORDER_ID:${orderId}`,
             width: 150, height: 150
         });
     }
-
-    monitorOrderStatus(orderId);
 }
 
 function monitorOrderStatus(orderId) {
@@ -110,7 +116,8 @@ function monitorOrderStatus(orderId) {
                     card.querySelector('h2').innerText = "طلبك جاهز! 🎉";
                     card.querySelector('p:last-child').innerText = "شكراً لانتظارك.";
                 }
-                channel.unsubscribe(); // إيقاف المراقبة بعد الاكتمال
+                localStorage.removeItem('pendingOrderId'); // مسح الطلب المعلق
+                channel.unsubscribe();
             }
         }).subscribe();
 }

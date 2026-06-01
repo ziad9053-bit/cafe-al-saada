@@ -1,14 +1,32 @@
-<script src="../Config%20%26%20Scripts/js_auth_config.js"></script>
-<script>
-    function checkLogin() {
-        const pass = document.getElementById('pass').value;
-        // إذا كان الموظف يكتب كلمة السر
-        if (verifyLogin(pass, 'admin')) {
-            window.location.href = "admin-dashboard.html";
-        } else if (verifyLogin(pass, 'worker')) {
-            window.location.href = "../Front-end/kitchen.html";
-        } else {
-            alert("كلمة المرور غير صحيحة!");
+<head>
+    <script src="../Config%20&%20Scripts/js_auth_config.js"></script>
+</head>
+<body>
+    <div class="bg-white p-8 rounded-xl shadow-md w-96 text-center">
+        <h2 class="text-xl font-bold mb-4">تسجيل الدخول</h2>
+        <input type="password" id="pass" placeholder="كلمة المرور" class="w-full p-2 border rounded mb-4">
+        <button onclick="checkLogin()" class="w-full bg-orange-600 text-white py-2 rounded hover:bg-orange-700">
+            دخول
+        </button>
+    </div>
+
+    <script>
+        function checkLogin() {
+            const pass = document.getElementById('pass').value;
+            
+            // تحقق من أن الدالة verifyLogin موجودة في js_auth_config.js
+            if (typeof verifyLogin !== 'function') {
+                console.error("خطأ: دالة verifyLogin غير معرفة!");
+                return;
+            }
+
+            if (verifyLogin(pass, 'admin')) {
+                window.location.href = "admin-dashboard.html";
+            } else if (verifyLogin(pass, 'worker')) {
+                window.location.href = "../Front-end/kitchen.html";
+            } else {
+                alert("كلمة المرور غير صحيحة!");
+            }
         }
-    }
-</script>
+    </script>
+</body>

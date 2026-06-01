@@ -1,8 +1,11 @@
+/**
+ * ملف: js_kitchen.js (النسخة المحدثة والمرتبطة بنظام QR)
+ */
+
 async function loadOrders() {
     const container = document.getElementById('orders-container');
     if (!container) return;
 
-    // التأكد من أن supabase متاح عالمياً
     if (!window.supabase) {
         console.error("مكتبة Supabase غير محملة!");
         return;
@@ -30,8 +33,8 @@ async function loadOrders() {
             <ul class="my-4 text-gray-700">
                 ${Array.isArray(order.items) ? order.items.map(item => `<li>${item.name} × ${item.quantity}</li>`).join('') : '<li>لا توجد أصناف</li>'}
             </ul>
-            <button onclick="markAsDone('${order.id}')" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
-                تم التحضير
+            <button onclick="markAsDone('${order.id}')" class="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-bold hover:bg-green-700 transition">
+                تم التحضير ✅
             </button>
         </div>
     `).join('');
@@ -46,10 +49,21 @@ async function markAsDone(orderId) {
     if (error) {
         console.error("خطأ أثناء التحديث:", error);
     } else {
-        loadOrders(); 
+        loadOrders(); // تحديث القائمة فوراً بعد الضغط
     }
 }
 
-// التشغيل الأولي والتحديث التلقائي
+// دالة لجعل المطبخ يستقبل الطلبات فوراً (Realtime)
+function setupRealtime() {
+    window.supabase.channel('kitchen_channel')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, 
+        () => {
+            loadOrders(); // تحديث تلقائي عند وصول طلب جديد
+        }).subscribe();
+}
+
+// التشغيل الأولي
 loadOrders();
-setInterval(loadOrders, 10000);
+setupRealtime();
+// الاحتفاظ بـ setInterval كخيار احتياطي لضمان الموثوقية
+setInterval(loadOrders, 30000);

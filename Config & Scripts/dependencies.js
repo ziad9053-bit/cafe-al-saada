@@ -1,6 +1,6 @@
-// مجرد روابط لاستدعاء الملفات
-document.write('<script src="https://cdn.tailwindcss.com"></script>');
-document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>');
-document.write('<script src="js_supabase.js"></script>');
-// تأكد من وجود هذا السطر
-window.supabase = supabase.createClient('YOUR_URL', 'YOUR_KEY');
+// هنا تضع مفاتيحك الخاصة فقط
+const supabaseUrl = 'https://xywrgfnktvesnmeeqlux.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5d3JnZm5rdHZlc25tZWVxbHV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNzgyMTgsImV4cCI6MjA5NTY1NDIxOH0.mMWZsGlwDimcGoKA96F9nLuXJBE0k3UC9_JYbvqLisI';
+
+// هنا يتم إنشاء الاتصال ليكون متاحاً في كل الموقع
+window.supabase = supabase.createClient(supabaseUrl, supabaseKey);

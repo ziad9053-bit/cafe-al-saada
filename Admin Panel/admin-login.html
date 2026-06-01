@@ -1,4 +1,7 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
 <head>
+    <meta charset="UTF-8">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="../Config%20&%20Scripts/js_auth_config.js"></script>
 </head>
@@ -15,21 +18,14 @@
         async function checkLogin() {
             const pass = document.getElementById('pass').value;
             
-            if (typeof verifyLogin !== 'function') {
-                console.error("خطأ: دالة verifyLogin غير معرفة في js_auth_config.js");
-                return;
-            }
-
-            // تحقق من الدور بناءً على كلمة المرور
             if (verifyLogin(pass, 'admin')) {
-                // المدير يذهب للوحة تحكم المدير
-                localStorage.setItem('role', 'admin'); // تأكد من حفظ الدور
+                localStorage.setItem('role', 'admin');
                 window.location.href = "admin-dashboard.html";
             } 
             else if (verifyLogin(pass, 'worker')) {
-                // العامل يذهب للوحة تحكم العامل (dashboard) وليس للمطبخ مباشرة
-                localStorage.setItem('role', 'worker'); 
-                window.location.href = "../Front-end/dashboard.html";
+                localStorage.setItem('role', 'worker');
+                // هذا هو التعديل الوحيد المطلوب: توجيه العامل للمطبخ مباشرة
+                window.location.href = "../Front-end/kitchen.html";
             } 
             else {
                 alert("كلمة المرور غير صحيحة!");
@@ -37,3 +33,4 @@
         }
     </script>
 </body>
+</html>

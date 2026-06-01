@@ -10,3 +10,4 @@ if (typeof supabase !== 'undefined') {
 } else {
     console.error("مكتبة Supabase لم تُحمل! تأكد من استدعائها في الـ HTML أولاً.");
 }
+

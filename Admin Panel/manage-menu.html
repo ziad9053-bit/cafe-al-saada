@@ -10,15 +10,15 @@
 <body class="bg-slate-50 p-8">
 
     <div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-        <h1 class="text-2xl font-bold text-slate-800 mb-6">➕ إضافة صنف مع صورة</h1>
+        <h1 class="text-2xl font-bold text-slate-800 mb-6">➕ إضافة صنف جديد</h1>
         
         <div class="space-y-4">
-            <input type="text" id="name" placeholder="اسم الصنف" class="w-full p-3 border rounded-xl">
-            <input type="number" id="price" placeholder="السعر" class="w-full p-3 border rounded-xl">
+            <input type="text" id="name" placeholder="اسم الصنف" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500">
+            <input type="number" id="price" placeholder="السعر" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500">
             <input type="file" id="imageFile" accept="image/*" class="w-full p-3 border rounded-xl">
-            <input type="text" id="category" placeholder="التصنيف" class="w-full p-3 border rounded-xl">
+            <input type="text" id="category" placeholder="التصنيف" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-orange-500">
             
-            <button onclick="handleSave()" id="saveBtn" class="w-full bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700">
+            <button onclick="handleSave()" id="saveBtn" class="w-full bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 transition">
                 حفظ الصنف
             </button>
         </div>
@@ -26,6 +26,7 @@
 
     <script>
         async function handleSave() {
+            const btn = document.getElementById('saveBtn');
             const name = document.getElementById('name').value;
             const price = parseFloat(document.getElementById('price').value);
             const category = document.getElementById('category').value;
@@ -33,31 +34,44 @@
             const file = fileInput.files[0];
 
             if (!name || !price || !file) {
-                alert("يرجى تعبئة كافة الحقول واختيار صورة");
-                return;
+                return alert("يرجى تعبئة كافة الحقول واختيار صورة");
             }
 
-            // 1. رفع الصورة
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Math.random()}.${fileExt}`;
-            const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('menu-images')
-                .upload(fileName, file);
+            // تحديث حالة الزر
+            btn.disabled = true;
+            btn.innerText = "جاري الحفظ...";
 
-            if (uploadError) return alert("خطأ في رفع الصورة: " + uploadError.message);
+            try {
+                // 1. إنشاء اسم ملف آمن (تاريخ ووقت + اسم الملف الأصلي)
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExt}`;
 
-            // 2. الحصول على الرابط العام
-            const { data: { publicUrl } } = supabase.storage.from('menu-images').getPublicUrl(fileName);
+                // 2. رفع الصورة
+                const { error: uploadError } = await supabase.storage
+                    .from('menu-images')
+                    .upload(fileName, file, { contentType: file.type });
 
-            // 3. حفظ الصنف في جدول items
-            const { error: dbError } = await supabase.from('items').insert([
-                { name, price, image_url: publicUrl, category, is_available: true }
-            ]);
+                if (uploadError) throw uploadError;
 
-            if (dbError) return alert("خطأ في حفظ البيانات: " + dbError.message);
-            
-            alert("تم إضافة الصنف بنجاح!");
-            location.reload();
+                // 3. الحصول على الرابط العام
+                const { data: { publicUrl } } = supabase.storage.from('menu-images').getPublicUrl(fileName);
+
+                // 4. حفظ البيانات في جدول items
+                const { error: dbError } = await supabase.from('items').insert([
+                    { name, price, image_url: publicUrl, category, is_available: true }
+                ]);
+
+                if (dbError) throw dbError;
+                
+                alert("تمت الإضافة بنجاح!");
+                location.reload();
+
+            } catch (error) {
+                console.error("خطأ:", error);
+                alert("حدث خطأ: " + (error.message || "تأكد من الاتصال بقاعدة البيانات"));
+                btn.disabled = false;
+                btn.innerText = "حفظ الصنف";
+            }
         }
     </script>
 </body>

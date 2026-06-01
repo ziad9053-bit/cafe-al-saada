@@ -1,50 +1,37 @@
-<head>
-    <script src="../Config%20&%20Scripts/js_auth_config.js"></script>
-    <script>
-        // حماية: إذا لم يكن الدور 'admin'، طرده فوراً
-        if (localStorage.getItem('role') !== 'admin') {
-            window.location.href = "admin-login.html";
-        }
-    </script>
-    ...
-</head>
-<script src="../Config%20%26%20Scripts/js_auth_config.js"></script>
-<script>
-    // التأكد من الصلاحية عند فتح الصفحة
-    const role = localStorage.getItem('role');
-    
-    // إذا كنت في صفحة المطبخ، يجب أن يكون الدور إما 'admin' أو 'worker'
-    if (window.location.pathname.includes('kitchen.html') && role !== 'admin' && role !== 'worker') {
-        window.location.href = "login.html";
-    }
-    
-    // إذا كنت في لوحة المدير، يجب أن يكون الدور 'admin' فقط
-    if (window.location.pathname.includes('admin-dashboard.html') && role !== 'admin') {
-        window.location.href = "admin-login.html";
-    }
-</script>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة المدير</title>
-    <script src="../Config%20%26%20Scripts/dependencies.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم المدير</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-8">
-    <div class="max-w-4xl mx-auto bg-white p-6 rounded-2xl shadow-lg">
-        <h1 class="text-3xl font-bold mb-6 text-gray-800">إدارة الأصناف</h1>
+<body class="bg-slate-50 min-h-screen p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-slate-800 mb-8 border-b pb-4">⚙️ لوحة تحكم المدير</h1>
         
-        <table class="w-full text-right">
-            <tbody id="items-list">
-                </tbody>
-        </table>
-        
-        <div class="mt-8 flex gap-4">
-            <a href="admin.html" class="bg-blue-600 text-white px-4 py-2 rounded">مراقبة الطلبات</a>
-            <a href="../index.html" class="text-gray-500">الخروج</a>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-700">إدارة الموظفين</h2>
+                <p class="text-slate-500 mt-2">إضافة وتعديل حسابات العاملين</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-700">التقارير المالية</h2>
+                <p class="text-slate-500 mt-2">عرض أرباح اليوم والمبيعات</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-700">إعدادات النظام</h2>
+                <p class="text-slate-500 mt-2">تعديل القائمة والأسعار</p>
+            </div>
+        </div>
+
+        <div class="mt-10 text-center">
+            <a href="../index.html" class="text-slate-400 hover:text-slate-600 underline">العودة للواجهة الرئيسية</a>
         </div>
     </div>
-    
-    <script src="../Config%20%26%20Scripts/js_admin.js"></script>
+
 </body>
 </html>

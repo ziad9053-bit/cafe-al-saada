@@ -1,5 +1,5 @@
 /**
- * ملف: js_menu.js
+ * ملف: js_menu.js (المصحح)
  */
 
 async function loadMenu() {
@@ -10,6 +10,7 @@ async function loadMenu() {
     const category = urlParams.get('cat'); 
 
     // جلب البيانات من Supabase
+    // تأكد أن window.supabase مهيأ في dependencies.js
     let query = window.supabase.from('items').select('*');
     if (category) query = query.eq('category', category);
 
@@ -22,7 +23,7 @@ async function loadMenu() {
 
     menuContainer.innerHTML = ""; 
     if (!data || data.length === 0) {
-        menuContainer.innerHTML = "<p class='text-center'>لا توجد أصناف في هذه الفئة حالياً.</p>";
+        menuContainer.innerHTML = "<p class='text-center col-span-3'>لا توجد أصناف في هذه الفئة حالياً.</p>";
     } else {
         data.forEach(item => {
             menuContainer.innerHTML += `
@@ -40,14 +41,6 @@ async function loadMenu() {
         });
     }
     
-    // استخدام Event Delegation (أسرع وأكثر كفاءة)
-    menuContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('add-to-cart-btn')) {
-            const { id, name, price } = e.target.dataset;
-            addToCart(id, name, parseFloat(price));
-        }
-    });
-
     updateCartCount();
 }
 
@@ -55,13 +48,7 @@ async function loadMenu() {
  * دالة إضافة صنف للسلة
  */
 function addToCart(id, name, price) {
-    let cart = [];
-    try {
-        cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    } catch (e) {
-        cart = [];
-    }
-    
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const existingItem = cart.find(item => item.id === id);
     
     if (existingItem) {
@@ -72,9 +59,7 @@ function addToCart(id, name, price) {
     
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
-    
-    // رسالة تنبيه خفيفة (يمكنك استبدالها بـ Toast لاحقاً)
-    console.log(`تمت إضافة ${name} للسلة`);
+    alert(`تمت إضافة ${name} للسلة`); // أضفت تنبيه بسيط لتعرف أن الزر يعمل
 }
 
 /**
@@ -83,17 +68,21 @@ function addToCart(id, name, price) {
 function updateCartCount() {
     const badge = document.getElementById('cart-badge');
     if (!badge) return;
-
-    let cart = [];
-    try {
-        cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    } catch (e) {
-        cart = [];
-    }
-    
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const totalItems = cart.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
     badge.innerText = totalItems;
 }
 
-// تشغيل الوظائف
-window.addEventListener('DOMContentLoaded', loadMenu);
+// التعديل الجوهري: تشغيل الدالة عند تحميل الصفحة
+// تأكد من ربط الحدث هنا
+document.addEventListener('DOMContentLoaded', () => {
+    loadMenu();
+    
+    // إضافة مستمع للأحداث للزر (Event Delegation)
+    document.getElementById('menu-items').addEventListener('click', (e) => {
+        if (e.target.classList.contains('add-to-cart-btn')) {
+            const { id, name, price } = e.target.dataset;
+            addToCart(id, name, parseFloat(price));
+        }
+    });
+});

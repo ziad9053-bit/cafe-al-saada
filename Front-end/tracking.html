@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام المقهى - تسجيل الدخول</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-gray-100 flex items-center justify-center h-screen">
 
@@ -17,11 +18,9 @@
         </button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <script src="../Config & Scripts/js_supabase.js"></script>
-    
-    <script src="../Config & Scripts/js_app.js"></script>
+    <script src="../Config%20&%20Scripts/js_supabase.js"></script>
+    <script src="../Config%20&%20Scripts/js_app.js"></script>
+    <script src="../Config%20&%20Scripts/js_kitchen.js"></script>
     
     <script>
         document.getElementById('startBtn').addEventListener('click', async () => {
@@ -31,7 +30,6 @@
                 return;
             }
             
-            // التأكد من أن دالة startOrder معرفة في js_app.js
             if (typeof startOrder === 'function') {
                 await startOrder(table);
             } else {
@@ -40,14 +38,4 @@
         });
     </script>
 </body>
-<script src="../Config & Scripts/js_supabase.js"></script>
-<script src="../Config & Scripts/js_kitchen.js"></script> ```
-*(ملاحظة: تأكد من المسار `../` للرجوع للمجلد الرئيسي ثم الدخول للمجلد المطلوب).*
-
-### 3. تأكد من "تصدير" المتغير في `js_supabase.js`
-افتح ملف `js_supabase.js` وتأكد أنك قمت بتعريف المتغير `window.supabase` بشكل صحيح، مثال:
-```javascript
-const supabaseUrl = 'رابط_مشروعك';
-const supabaseKey = 'مفتاح_مشروعك';
-window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
 </html>

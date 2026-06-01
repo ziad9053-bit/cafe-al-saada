@@ -1,1 +1,58 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>رفع صور القائمة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../Config%20&%20Scripts/dependencies.js"></script>
+</head>
+<body class="bg-slate-50 p-8">
+    <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-sm border">
+        <h2 class="text-xl font-bold mb-4">رفع صور جديدة</h2>
+        <input type="file" id="fileInput" class="w-full p-2 border rounded mb-4">
+        <button onclick="uploadImage()" id="uploadBtn" class="w-full bg-blue-600 text-white py-2 rounded">رفع الصورة</button>
+    </div>
 
+    <script>
+        // تذكير: استخدم service_role key هنا فقط
+        const adminClient = supabase.createClient(supabaseUrl, 'YOUR_SERVICE_ROLE_KEY');
+
+        async function uploadImage() {
+            const file = document.getElementById('fileInput').files[0];
+            const btn = document.getElementById('uploadBtn');
+            
+            if (!file) return alert("اختر صورة");
+            
+            btn.disabled = true;
+            btn.innerText = "جاري الرفع...";
+
+            try {
+                const fileName = `assets/${Date.now()}_${file.name}`;
+                
+                // 1. الرفع للـ Storage
+                const { error: uploadError } = await adminClient.storage
+                    .from('menu-images')
+                    .upload(fileName, file);
+                if (uploadError) throw uploadError;
+
+                // 2. الحصول على الرابط
+                const { data } = adminClient.storage.from('menu-images').getPublicUrl(fileName);
+
+                // 3. حفظ الرابط في جدول gallery
+                const { error: dbError } = await adminClient.from('gallery').insert([
+                    { name: file.name, image_url: data.publicUrl }
+                ]);
+                if (dbError) throw dbError;
+
+                alert("تم رفع الصورة بنجاح وتخزينها في المعرض!");
+                btn.disabled = false;
+                btn.innerText = "رفع الصورة";
+            } catch (err) {
+                alert("خطأ: " + err.message);
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

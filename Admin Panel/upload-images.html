@@ -10,16 +10,14 @@
 <body class="bg-slate-50 p-8">
     <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-sm border">
         <h2 class="text-xl font-bold mb-4">رفع صور جديدة</h2>
-        <input type="file" id="fileInput" class="w-full p-2 border rounded mb-4">
+        <input type="file" id="fileInput" accept="image/*" class="w-full p-2 border rounded mb-4">
         <button onclick="uploadImage()" id="uploadBtn" class="w-full bg-blue-600 text-white py-2 rounded">رفع الصورة</button>
     </div>
 
     <script>
-        // تذكير: استخدم service_role key هنا فقط
-        const adminClient = supabase.createClient(supabaseUrl, 'YOUR_SERVICE_ROLE_KEY');
-
         async function uploadImage() {
-            const file = document.getElementById('fileInput').files[0];
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
             const btn = document.getElementById('uploadBtn');
             
             if (!file) return alert("اختر صورة");
@@ -28,28 +26,34 @@
             btn.innerText = "جاري الرفع...";
 
             try {
-                const fileName = `assets/${Date.now()}_${file.name}`;
+                // تنظيف اسم الملف لتجنب مشاكل الـ S3
+                const cleanName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+                const fileName = `assets/${Date.now()}_${cleanName}`;
                 
-                // 1. الرفع للـ Storage
-                const { error: uploadError } = await adminClient.storage
+                // 1. الرفع للـ Storage باستخدام العميل المهيأ في dependencies.js
+                const { error: uploadError } = await supabase.storage
                     .from('menu-images')
                     .upload(fileName, file);
+                
                 if (uploadError) throw uploadError;
 
                 // 2. الحصول على الرابط
-                const { data } = adminClient.storage.from('menu-images').getPublicUrl(fileName);
+                const { data } = supabase.storage.from('menu-images').getPublicUrl(fileName);
 
                 // 3. حفظ الرابط في جدول gallery
-                const { error: dbError } = await adminClient.from('gallery').insert([
+                const { error: dbError } = await supabase.from('gallery').insert([
                     { name: file.name, image_url: data.publicUrl }
                 ]);
+                
                 if (dbError) throw dbError;
 
-                alert("تم رفع الصورة بنجاح وتخزينها في المعرض!");
-                btn.disabled = false;
+                alert("تم رفع الصورة بنجاح!");
                 btn.innerText = "رفع الصورة";
+                fileInput.value = '';
             } catch (err) {
+                console.error("خطأ:", err);
                 alert("خطأ: " + err.message);
+            } finally {
                 btn.disabled = false;
             }
         }

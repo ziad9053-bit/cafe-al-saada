@@ -1,5 +1,5 @@
 /**
- * ملف: js_cart.js (النسخة النهائية - معتمدة على إعدادات Supabase الذكية)
+ * ملف: js_cart.js (النسخة الأكثر استقراراً وأماناً)
  */
 
 function getCart() {
@@ -8,7 +8,6 @@ function getCart() {
         return data ? JSON.parse(data) : [];
     } catch (e) {
         console.error("خطأ في قراءة بيانات السلة:", e);
-        localStorage.removeItem('cart');
         return [];
     }
 }
@@ -17,12 +16,11 @@ function renderCart() {
     const container = document.getElementById('cart-items');
     const totalEl = document.getElementById('cart-total');
     const cart = getCart();
-
     if (!container) return;
 
     if (!cart || cart.length === 0) {
         container.innerHTML = "<p class='text-gray-500 text-center py-10'>السلة فارغة حالياً.</p>";
-        if(totalEl) totalEl.innerText = "0 ريال";
+        if (totalEl) totalEl.innerText = "0 ريال";
         return;
     }
 
@@ -31,7 +29,6 @@ function renderCart() {
         const qty = parseInt(item.quantity) || 1;
         const price = parseFloat(item.price) || 0;
         total += (price * qty);
-        
         return `
             <div class="bg-white p-4 rounded-2xl shadow-sm border flex items-center justify-between">
                 <div>
@@ -43,20 +40,16 @@ function renderCart() {
                     <span class="font-bold w-6 text-center">${qty}</span>
                     <button onclick="updateQty(${index}, 1)" class="text-xl font-bold px-2 text-gray-600">+</button>
                 </div>
-            </div>
-        `;
+            </div>`;
     }).join('');
-
     if (totalEl) totalEl.innerText = total + " ريال";
 }
 
 function updateQty(index, change) {
     let cart = getCart();
     if (!cart[index]) return;
-    
     cart[index].quantity = (parseInt(cart[index].quantity) || 1) + change;
     if (cart[index].quantity <= 0) cart.splice(index, 1);
-    
     localStorage.setItem('cart', JSON.stringify(cart));
     renderCart();
     if (typeof updateCartBadge === 'function') updateCartBadge();
@@ -64,7 +57,7 @@ function updateQty(index, change) {
 
 async function confirmOrder() {
     const btn = document.getElementById('confirm-btn');
-    if (typeof window.supabase === 'undefined') return alert("جاري تهيئة النظام، يرجى الانتظار...");
+    if (typeof window.supabase === 'undefined') return alert("جاري تهيئة النظام...");
 
     const tableNo = document.getElementById('tableNo')?.value;
     const cart = getCart();
@@ -75,25 +68,29 @@ async function confirmOrder() {
     btn.disabled = true;
     btn.innerText = "جاري الإرسال...";
 
-    // نرسل البيانات الأساسية فقط، القاعدة تتولى (total_price, order_code, created_at) تلقائياً
-    const { error } = await window.supabase
-        .from('orders')
-        .insert([{
-            table_no: tableNo, // نرسله كنص إذا كان العمود في القاعدة نص، أو سيتم تحويله تلقائياً
-            items: cart,
-            status: 'pending'
-        }]);
+    try {
+        // نستخدم insert فقط بدون select لتجنب أي تعارض في الصلاحيات أو البيانات
+        const { error } = await window.supabase
+            .from('orders')
+            .insert([{
+                table_no: tableNo,
+                items: cart,
+                status: 'pending'
+            }]);
 
-    if (error) {
+        if (error) throw error;
+
+        // في حال النجاح
+        localStorage.removeItem('cart');
+        alert("تم إرسال طلبك بنجاح!");
+        window.location.href = "index.html";
+
+    } catch (err) {
+        console.error("خطأ Supabase:", err);
         btn.disabled = false;
         btn.innerText = "تأكيد الطلب";
-        console.error("خطأ Supabase:", error);
-        return alert("حدث خطأ أثناء إرسال الطلب: " + error.message);
+        alert("حدث خطأ أثناء الإرسال: " + (err.message || "يرجى المحاولة لاحقاً"));
     }
-
-    localStorage.removeItem('cart');
-    alert("تم إرسال طلبك بنجاح!");
-    window.location.href = "index.html";
 }
 
 window.addEventListener('DOMContentLoaded', () => {

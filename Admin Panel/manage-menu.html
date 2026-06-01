@@ -1,1 +1,62 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة القائمة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../Config%20&%20Scripts/dependencies.js"></script>
+</head>
+<body class="bg-slate-50 p-8">
 
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+        <h1 class="text-2xl font-bold text-slate-800 mb-6">➕ إضافة صنف جديد</h1>
+        
+        <div class="space-y-4">
+            <input type="text" id="name" placeholder="اسم الصنف" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
+            <input type="number" id="price" placeholder="السعر" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
+            <input type="text" id="image_url" placeholder="رابط الصورة" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
+            <input type="text" id="category" placeholder="التصنيف" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
+            
+            <button onclick="addItem()" class="w-full bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 transition">
+                حفظ الصنف
+            </button>
+        </div>
+        
+        <div class="mt-6 text-center">
+            <a href="admin-dashboard.html" class="text-slate-400 hover:text-slate-600 underline">العودة للوحة التحكم</a>
+        </div>
+    </div>
+
+    <script>
+        async function addItem() {
+            const name = document.getElementById('name').value;
+            const price = parseFloat(document.getElementById('price').value);
+            const image_url = document.getElementById('image_url').value;
+            const category = document.getElementById('category').value;
+
+            if (!name || !price) {
+                alert("يرجى تعبئة الحقول الأساسية (الاسم والسعر)");
+                return;
+            }
+
+            const { data, error } = await supabase
+                .from('items')
+                .insert([{ name, price, image_url, category, is_available: true }]);
+
+            if (error) {
+                console.error("خطأ:", error);
+                alert("حدث خطأ أثناء الإضافة: " + error.message);
+            } else {
+                alert("تم إضافة الصنف بنجاح!");
+                // تفريغ الحقول بعد الإضافة
+                document.getElementById('name').value = '';
+                document.getElementById('price').value = '';
+                document.getElementById('image_url').value = '';
+                document.getElementById('category').value = '';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,29 +1,43 @@
 /**
- * ملف: js_menu.js (المصحح)
+ * ملف: js_menu.js (المعدل للمراقبة)
  */
 
 async function loadMenu() {
+    console.log("1. بدأت عملية تحميل القائمة...");
     const menuContainer = document.getElementById('menu-items');
-    if (!menuContainer) return;
+    if (!menuContainer) {
+        console.error("خطأ: العنصر menu-items غير موجود في الصفحة!");
+        return;
+    }
+
+    // التأكد من وجود Supabase قبل الاستخدام
+    if (typeof window.supabase === 'undefined') {
+        console.error("خطأ: مكتبة Supabase لم تُحمل أو لم يتم تهيئتها!");
+        menuContainer.innerHTML = "<p class='text-center text-red-500'>خطأ في الاتصال (Supabase غير موجود).</p>";
+        return;
+    }
 
     const urlParams = new URLSearchParams(window.location.search);
     const category = urlParams.get('cat'); 
 
-    // جلب البيانات من Supabase
-    // تأكد أن window.supabase مهيأ في dependencies.js
+    // جلب البيانات
+    console.log("2. جاري جلب البيانات من جدول 'items'...");
     let query = window.supabase.from('items').select('*');
     if (category) query = query.eq('category', category);
 
     const { data, error } = await query;
+
     if (error) { 
-        console.error("خطأ Supabase:", error); 
-        menuContainer.innerHTML = "<p class='text-center text-red-500'>تعذر تحميل القائمة.</p>";
+        console.error("خطأ من Supabase:", error); 
+        menuContainer.innerHTML = `<p class='text-center text-red-500'>خطأ: ${error.message}</p>`;
         return; 
     }
 
+    console.log("3. تم جلب البيانات بنجاح:", data);
+
     menuContainer.innerHTML = ""; 
     if (!data || data.length === 0) {
-        menuContainer.innerHTML = "<p class='text-center col-span-3'>لا توجد أصناف في هذه الفئة حالياً.</p>";
+        menuContainer.innerHTML = "<p class='text-center col-span-3'>لا توجد أصناف حالياً.</p>";
     } else {
         data.forEach(item => {
             menuContainer.innerHTML += `
@@ -40,49 +54,41 @@ async function loadMenu() {
             `;
         });
     }
-    
     updateCartCount();
 }
 
-/**
- * دالة إضافة صنف للسلة
- */
+// تشغيل عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    loadMenu();
+    
+    // ربط السلة
+    const menuItems = document.getElementById('menu-items');
+    if (menuItems) {
+        menuItems.addEventListener('click', (e) => {
+            if (e.target.classList.contains('add-to-cart-btn')) {
+                const { id, name, price } = e.target.dataset;
+                addToCart(id, name, parseFloat(price));
+            }
+        });
+    }
+});
+
 function addToCart(id, name, price) {
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const existingItem = cart.find(item => item.id === id);
-    
     if (existingItem) {
         existingItem.quantity = (parseInt(existingItem.quantity) || 1) + 1;
     } else {
         cart.push({ id, name, price, quantity: 1 });
     }
-    
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
-    alert(`تمت إضافة ${name} للسلة`); // أضفت تنبيه بسيط لتعرف أن الزر يعمل
+    alert(`تمت إضافة ${name} للسلة`);
 }
 
-/**
- * دالة تحديث العداد
- */
 function updateCartCount() {
     const badge = document.getElementById('cart-badge');
     if (!badge) return;
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const totalItems = cart.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
-    badge.innerText = totalItems;
+    badge.innerText = cart.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
 }
-
-// التعديل الجوهري: تشغيل الدالة عند تحميل الصفحة
-// تأكد من ربط الحدث هنا
-document.addEventListener('DOMContentLoaded', () => {
-    loadMenu();
-    
-    // إضافة مستمع للأحداث للزر (Event Delegation)
-    document.getElementById('menu-items').addEventListener('click', (e) => {
-        if (e.target.classList.contains('add-to-cart-btn')) {
-            const { id, name, price } = e.target.dataset;
-            addToCart(id, name, parseFloat(price));
-        }
-    });
-});

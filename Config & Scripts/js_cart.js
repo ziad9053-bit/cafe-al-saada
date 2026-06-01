@@ -1,13 +1,14 @@
 /**
- * ملف: js_cart.js (النسخة النهائية والمثالية)
+ * ملف: js_cart.js (النسخة النهائية والمحصنة ضد أخطاء التحميل)
  */
 
 window.addEventListener('DOMContentLoaded', () => {
-    // التحقق من وجود طلب معلق عند تحميل الصفحة
+    // التحقق من وجود طلب معلق
     const pendingOrderId = localStorage.getItem('pendingOrderId');
     if (pendingOrderId) {
         showWaitScreen(pendingOrderId);
-        monitorOrderStatus(pendingOrderId);
+        // الانتظار قليلاً للتأكد من تحميل Supabase ثم مراقبة الحالة
+        setTimeout(() => monitorOrderStatus(pendingOrderId), 1000);
     } else {
         renderCart();
     }
@@ -63,6 +64,12 @@ function renderCart() {
 }
 
 async function confirmOrder() {
+    // حماية: التأكد من تحميل Supabase قبل التنفيذ
+    if (typeof window.supabase === 'undefined') {
+        alert("جاري الاتصال بالسيرفر، يرجى الانتظار ثانية والمحاولة مرة أخرى.");
+        return;
+    }
+
     const tableInput = document.getElementById('tableNo');
     const tableNo = tableInput ? tableInput.value : null;
     const cart = getCart();
@@ -78,7 +85,7 @@ async function confirmOrder() {
 
     const orderId = data[0].id;
     localStorage.removeItem('cart');
-    localStorage.setItem('pendingOrderId', orderId); // حفظ رقم الطلب
+    localStorage.setItem('pendingOrderId', orderId);
 
     showWaitScreen(orderId);
     monitorOrderStatus(orderId);
@@ -105,6 +112,8 @@ function showWaitScreen(orderId) {
 }
 
 function monitorOrderStatus(orderId) {
+    if (typeof window.supabase === 'undefined') return;
+
     const channel = window.supabase.channel('order_update')
         .on('postgres_changes', { 
             event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` 
@@ -116,7 +125,7 @@ function monitorOrderStatus(orderId) {
                     card.querySelector('h2').innerText = "طلبك جاهز! 🎉";
                     card.querySelector('p:last-child').innerText = "شكراً لانتظارك.";
                 }
-                localStorage.removeItem('pendingOrderId'); // مسح الطلب المعلق
+                localStorage.removeItem('pendingOrderId');
                 channel.unsubscribe();
             }
         }).subscribe();

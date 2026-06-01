@@ -1,20 +1,29 @@
 /**
- * ملف: js_cart.js (النسخة النهائية والمحصنة ضد أخطاء التحميل)
+ * ملف: js_cart.js (النسخة النهائية والمحصنة)
  */
 
 window.addEventListener('DOMContentLoaded', () => {
-    // التحقق من وجود طلب معلق
+    // التحقق من وجود طلب معلق عند تحميل الصفحة
     const pendingOrderId = localStorage.getItem('pendingOrderId');
     if (pendingOrderId) {
         showWaitScreen(pendingOrderId);
-        // الانتظار قليلاً للتأكد من تحميل Supabase ثم مراقبة الحالة
-        setTimeout(() => monitorOrderStatus(pendingOrderId), 1000);
+        // نستخدم حلقة انتظار بسيطة في حال تأخر Supabase
+        const checkSupabase = setInterval(() => {
+            if (window.supabase) {
+                clearInterval(checkSupabase);
+                monitorOrderStatus(pendingOrderId);
+            }
+        }, 500);
     } else {
         renderCart();
     }
     
+    // ربط الزر برمجياً لضمان عدم حدوث خطأ onclick
     const confirmBtn = document.getElementById('confirm-btn');
-    if (confirmBtn) confirmBtn.addEventListener('click', confirmOrder);
+    if (confirmBtn) {
+        confirmBtn.removeEventListener('click', confirmOrder); // تنظيف أي مستمع قديم
+        confirmBtn.addEventListener('click', confirmOrder);
+    }
 });
 
 function getCart() {
@@ -64,10 +73,8 @@ function renderCart() {
 }
 
 async function confirmOrder() {
-    // حماية: التأكد من تحميل Supabase قبل التنفيذ
     if (typeof window.supabase === 'undefined') {
-        alert("جاري الاتصال بالسيرفر، يرجى الانتظار ثانية والمحاولة مرة أخرى.");
-        return;
+        return alert("جاري تهيئة النظام، يرجى الانتظار ثانية.");
     }
 
     const tableInput = document.getElementById('tableNo');
@@ -112,7 +119,7 @@ function showWaitScreen(orderId) {
 }
 
 function monitorOrderStatus(orderId) {
-    if (typeof window.supabase === 'undefined') return;
+    if (!window.supabase) return;
 
     const channel = window.supabase.channel('order_update')
         .on('postgres_changes', { 

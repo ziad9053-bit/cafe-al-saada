@@ -1,5 +1,5 @@
 /**
- * ملف: js_cart.js (النسخة النهائية المنقحة)
+ * ملف: js_cart.js (النسخة النهائية - معتمدة على إعدادات Supabase الذكية)
  */
 
 function getCart() {
@@ -52,6 +52,8 @@ function renderCart() {
 
 function updateQty(index, change) {
     let cart = getCart();
+    if (!cart[index]) return;
+    
     cart[index].quantity = (parseInt(cart[index].quantity) || 1) + change;
     if (cart[index].quantity <= 0) cart.splice(index, 1);
     
@@ -62,40 +64,31 @@ function updateQty(index, change) {
 
 async function confirmOrder() {
     const btn = document.getElementById('confirm-btn');
-    if (typeof window.supabase === 'undefined') return alert("جاري تهيئة النظام...");
+    if (typeof window.supabase === 'undefined') return alert("جاري تهيئة النظام، يرجى الانتظار...");
 
-    const tableInput = document.getElementById('tableNo');
-    const tableNo = tableInput ? tableInput.value : null;
+    const tableNo = document.getElementById('tableNo')?.value;
     const cart = getCart();
 
     if (!tableNo) return alert("يرجى إدخال رقم الطاولة");
     if (cart.length === 0) return alert("السلة فارغة");
 
-    // حساب الإجمالي مع التأكد من تحويله لرقم
-    const totalAmount = cart.reduce((sum, item) => {
-        return sum + (parseFloat(item.price) * (parseInt(item.quantity) || 1));
-    }, 0);
-
     btn.disabled = true;
     btn.innerText = "جاري الإرسال...";
 
-    // إرسال البيانات - قمت بتبسيط الإرسال ليتوافق مع هيكلية Supabase القياسية
-    const orderData = {
-        table_no: parseInt(tableNo),
-        items: cart,
-        status: 'pending',
-        total_price: Number(totalAmount) 
-    };
-
-    const { data, error } = await window.supabase
+    // نرسل البيانات الأساسية فقط، القاعدة تتولى (total_price, order_code, created_at) تلقائياً
+    const { error } = await window.supabase
         .from('orders')
-        .insert([orderData]);
+        .insert([{
+            table_no: tableNo, // نرسله كنص إذا كان العمود في القاعدة نص، أو سيتم تحويله تلقائياً
+            items: cart,
+            status: 'pending'
+        }]);
 
     if (error) {
         btn.disabled = false;
         btn.innerText = "تأكيد الطلب";
         console.error("خطأ Supabase:", error);
-        return alert("خطأ في الإرسال: " + error.message);
+        return alert("حدث خطأ أثناء إرسال الطلب: " + error.message);
     }
 
     localStorage.removeItem('cart');
@@ -105,6 +98,5 @@ async function confirmOrder() {
 
 window.addEventListener('DOMContentLoaded', () => {
     renderCart();
-    const confirmBtn = document.getElementById('confirm-btn');
-    if (confirmBtn) confirmBtn.addEventListener('click', confirmOrder);
+    document.getElementById('confirm-btn')?.addEventListener('click', confirmOrder);
 });

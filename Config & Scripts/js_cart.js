@@ -1,5 +1,5 @@
 /**
- * ملف: js_cart.js (النسخة المعدلة لحل مشكلة total_price)
+ * ملف: js_cart.js (النسخة النهائية المنقحة)
  */
 
 function getCart() {
@@ -60,7 +60,6 @@ function updateQty(index, change) {
     if (typeof updateCartBadge === 'function') updateCartBadge();
 }
 
-// الدالة المعدلة:
 async function confirmOrder() {
     const btn = document.getElementById('confirm-btn');
     if (typeof window.supabase === 'undefined') return alert("جاري تهيئة النظام...");
@@ -72,21 +71,25 @@ async function confirmOrder() {
     if (!tableNo) return alert("يرجى إدخال رقم الطاولة");
     if (cart.length === 0) return alert("السلة فارغة");
 
-    // 1. حساب الإجمالي (حل مشكلة total_price)
-    const totalAmount = cart.reduce((sum, item) => sum + (parseFloat(item.price) * (parseInt(item.quantity) || 1)), 0);
+    // حساب الإجمالي مع التأكد من تحويله لرقم
+    const totalAmount = cart.reduce((sum, item) => {
+        return sum + (parseFloat(item.price) * (parseInt(item.quantity) || 1));
+    }, 0);
 
     btn.disabled = true;
     btn.innerText = "جاري الإرسال...";
 
-    // 2. إرسال البيانات مع حقل total_price
+    // إرسال البيانات - قمت بتبسيط الإرسال ليتوافق مع هيكلية Supabase القياسية
     const orderData = {
         table_no: parseInt(tableNo),
         items: cart,
         status: 'pending',
-        total_price: totalAmount // تمت إضافة هذا الحقل
+        total_price: Number(totalAmount) 
     };
 
-    const { data, error } = await window.supabase.from('orders').insert([orderData]).select('id');
+    const { data, error } = await window.supabase
+        .from('orders')
+        .insert([orderData]);
 
     if (error) {
         btn.disabled = false;

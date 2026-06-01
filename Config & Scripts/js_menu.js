@@ -1,10 +1,16 @@
 /**
- * ملف: js_menu.js (النسخة المصححة لالتقاط الصورة)
+ * ملف: js_menu.js (النسخة المحدثة والمستقرة)
  */
 
 async function loadMenu() {
     const menuContainer = document.getElementById('menu-items');
-    if (!menuContainer || typeof window.supabase === 'undefined') return;
+    
+    // فحص الجاهزية بدقة
+    if (!menuContainer) return;
+    if (typeof window.supabase === 'undefined') {
+        console.warn("جاري انتظار جاهزية Supabase...");
+        return;
+    }
 
     const urlParams = new URLSearchParams(window.location.search);
     const category = urlParams.get('cat'); 
@@ -15,7 +21,8 @@ async function loadMenu() {
     const { data, error } = await query;
 
     if (error) {
-        menuContainer.innerHTML = `<p class='text-center text-red-500'>حدث خطأ في تحميل القائمة.</p>`;
+        console.error("خطأ Supabase:", error);
+        menuContainer.innerHTML = `<p class='text-center text-red-500 p-4'>حدث خطأ أثناء تحميل القائمة. تأكد من الاتصال.</p>`;
         return;
     }
 
@@ -34,12 +41,11 @@ async function loadMenu() {
                 </svg>
             </button>
         </div>
-    `).join('') : "<p class='text-center col-span-full text-gray-500'>لا توجد أصناف في هذا القسم حالياً.</p>";
+    `).join('') : "<p class='text-center col-span-full text-gray-500 py-10'>لا توجد أصناف حالياً.</p>";
 
     updateCartCount();
 }
 
-// تعديل دالة الإضافة لالتقاط الصورة من الـ dataset
 function addToCart(id, name, price, imageUrl) {
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const existingItem = cart.find(item => item.id === id);
@@ -47,13 +53,13 @@ function addToCart(id, name, price, imageUrl) {
     if (existingItem) {
         existingItem.quantity = (parseInt(existingItem.quantity) || 1) + 1;
     } else {
-        // هنا تم إضافة imageUrl إلى السلة
-        cart.push({ id, name, price, quantity: 1, image_url: imageUrl });
+        cart.push({ id, name, price: parseFloat(price), quantity: 1, image_url: imageUrl });
     }
     
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();
     
+    // تأثير بصري بسيط
     const badge = document.getElementById('cart-badge');
     if(badge) {
         badge.classList.add('scale-125');
@@ -61,20 +67,29 @@ function addToCart(id, name, price, imageUrl) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadMenu();
-    document.getElementById('menu-items')?.addEventListener('click', (e) => {
-        const btn = e.target.closest('.add-to-cart-btn');
-        if (btn) {
-            const { id, name, price, image } = btn.dataset; // التقاط الصورة من الزر
-            addToCart(id, name, parseFloat(price), image);
-        }
-    });
-});
-
 function updateCartCount() {
     const badge = document.getElementById('cart-badge');
     if (!badge) return;
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     badge.innerText = cart.reduce((sum, item) => sum + (parseInt(item.quantity) || 0), 0);
 }
+
+// [تعديل جذري] التشغيل عبر الحدث الجاهز والـ DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    updateCartCount();
+    
+    // الاستماع لحدث جاهزية Supabase
+    window.addEventListener('supabaseReady', loadMenu);
+    
+    // محاولة التشغيل فوراً في حال كان Supabase جاهزاً بالفعل
+    if (window.supabase) loadMenu();
+
+    // ربط زر الإضافة
+    document.getElementById('menu-items')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('.add-to-cart-btn');
+        if (btn) {
+            const { id, name, price, image } = btn.dataset;
+            addToCart(id, name, price, image);
+        }
+    });
+});

@@ -9,27 +9,36 @@
 <body class="bg-slate-50 min-h-screen p-8">
 
     <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold text-slate-800 mb-8 border-b pb-4">⚙️ لوحة تحكم المدير</h1>
+        <header class="flex justify-between items-center mb-8 border-b pb-4">
+            <h1 class="text-3xl font-bold text-slate-800">⚙️ لوحة تحكم المدير</h1>
+            <a href="../index.html" class="text-sm text-slate-400 hover:text-orange-600 transition">العودة للموقع</a>
+        </header>
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h2 class="text-lg font-bold text-slate-700">إدارة الموظفين</h2>
-                <p class="text-slate-500 mt-2">إضافة وتعديل حسابات العاملين</p>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <a href="upload-images.html" class="block bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-500 transition-all hover:shadow-lg">
+                <div class="text-3xl mb-3">🖼️</div>
+                <h2 class="text-lg font-bold text-slate-700">مكتبة الصور</h2>
+                <p class="text-slate-500 mt-2 text-sm">رفع وتخزين الصور قبل استخدامها في القائمة</p>
+            </a>
+            
+            <a href="manage-menu.html" class="block bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-orange-500 transition-all hover:shadow-lg">
+                <div class="text-3xl mb-3">🍽️</div>
+                <h2 class="text-lg font-bold text-slate-700">تعديل القائمة</h2>
+                <p class="text-slate-500 mt-2 text-sm">إضافة أصناف جديدة وتحديد أسعارها</p>
+            </a>
             
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="text-3xl mb-3">📊</div>
                 <h2 class="text-lg font-bold text-slate-700">التقارير المالية</h2>
-                <p class="text-slate-500 mt-2">عرض أرباح اليوم والمبيعات</p>
+                <p class="text-slate-500 mt-2 text-sm">عرض مبيعات اليوم والإحصائيات</p>
             </div>
 
-            <a href="manage-menu.html" class="block bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-orange-500 transition-all hover:shadow-md cursor-pointer">
-                <h2 class="text-lg font-bold text-slate-700">إعدادات النظام</h2>
-                <p class="text-slate-500 mt-2">تعديل القائمة والأسعار</p>
-            </a>
-        </div>
-
-        <div class="mt-10 text-center">
-            <a href="../index.html" class="text-slate-400 hover:text-slate-600 underline">العودة للواجهة الرئيسية</a>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="text-3xl mb-3">👥</div>
+                <h2 class="text-lg font-bold text-slate-700">إدارة الموظفين</h2>
+                <p class="text-slate-500 mt-2 text-sm">إضافة وتعديل حسابات العاملين</p>
+            </div>
         </div>
     </div>
 

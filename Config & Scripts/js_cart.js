@@ -1,5 +1,5 @@
 /**
- * ملف: js_cart.js (النسخة الأكثر استقراراً وأماناً)
+ * ملف: js_cart.js (النسخة المثالية - متوافقة مع قاعدة البيانات المحدثة)
  */
 
 function getCart() {
@@ -69,18 +69,18 @@ async function confirmOrder() {
     btn.innerText = "جاري الإرسال...";
 
     try {
-        // نستخدم insert فقط بدون select لتجنب أي تعارض في الصلاحيات أو البيانات
+        // بما أن القاعدة تملأ كل شيء (total_price, order_code, status) تلقائياً
+        // فنحن نرسل فقط البيانات المطلوبة فعلياً لإتمام الطلب
         const { error } = await window.supabase
             .from('orders')
             .insert([{
                 table_no: tableNo,
-                items: cart,
-                status: 'pending'
+                items: cart
+                // تم حذف status: 'pending' لأن القاعدة تضع 'confirmed' تلقائياً
             }]);
 
         if (error) throw error;
 
-        // في حال النجاح
         localStorage.removeItem('cart');
         alert("تم إرسال طلبك بنجاح!");
         window.location.href = "index.html";

@@ -92,8 +92,13 @@
                 badge.className =
                     "inline-block px-4 py-1.5 rounded-full text-sm font-bold border border-emerald-500/60 bg-emerald-950 text-emerald-400";
                 readyMsg.classList.remove("hidden");
+            } else if (status === "preparing") {
+                badge.textContent = "قيد التجهيز";
+                badge.className =
+                    "inline-block px-4 py-1.5 rounded-full text-sm font-bold border border-amber-500/60 bg-amber-950 gold-text";
+                readyMsg.classList.add("hidden");
             } else {
-                badge.textContent = "قيد التحضير";
+                badge.textContent = "بانتظار العامل";
                 badge.className =
                     "inline-block px-4 py-1.5 rounded-full text-sm font-bold border gold-border bg-zinc-900 gold-text";
                 readyMsg.classList.add("hidden");

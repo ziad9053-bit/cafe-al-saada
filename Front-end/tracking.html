@@ -243,6 +243,7 @@
 
         function updateUiForStatus(status) {
             const isReady = status === "completed";
+            const isPreparing = status === "preparing" || status === "pending";
             if (isReady) {
                 qrBox.classList.remove("border-yellow-500");
                 qrBox.classList.add("border-emerald-500");
@@ -251,13 +252,14 @@
                 statusText.textContent = "الطلب جاهز ✓";
                 subText.textContent = "يمكنك استلام طلبك الآن — بالهناء والشفاء";
                 playReadySound();
-            } else {
+            } else if (isPreparing) {
                 qrBox.classList.remove("border-emerald-500");
                 qrBox.classList.add("border-yellow-500");
                 statusText.classList.remove("text-emerald-400");
                 statusText.classList.add("text-yellow-400");
-                statusText.textContent = "قيد التحضير";
-                subText.textContent = "انتظر تحويل اللون إلى الأخضر عند اكتمال التحضير";
+                statusText.textContent =
+                    status === "preparing" ? "قيد التجهيز" : "بانتظار استلام الطلب";
+                subText.textContent = "انتظر تحويل اللون إلى الأخضر عند اكتمال التجهيز";
             }
             if (currentOrder) {
                 currentOrder.status = status;
@@ -315,8 +317,8 @@
                         if (next) {
                             currentOrder = { ...currentOrder, ...next };
                             renderOrderDetails(currentOrder);
+                            updateUiForStatus(next.status);
                         }
-                        updateUiForStatus(next?.status);
                     }
                 )
                 .subscribe();

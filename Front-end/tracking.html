@@ -6,7 +6,7 @@
     <title>تتبع الطلب</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js?v=2"></script>
     <script src="../Config%20&%20Scripts/dependencies.js?v=6"></script>
     <script src="../Config%20&%20Scripts/js_app_settings.js"></script>
     <style>
@@ -15,6 +15,8 @@
             height: 14rem;
             overflow: hidden;
             background: #ffffff;
+            border: 1px solid #e5e5e5;
+            box-shadow: none;
         }
         #qrHost {
             width: 100%;
@@ -38,7 +40,7 @@
         <p id="subText" class="text-zinc-300 mb-5 text-sm text-center">انتظر تحويل اللون إلى الأخضر عند اكتمال التجهيز</p>
 
         <!-- QR فعلي يُولَّد محلياً ويُمسح بالكاميرا -->
-        <div id="qrBox" class="mx-auto rounded-2xl border-4 border-yellow-500 p-2 flex items-center justify-center transition-all duration-500 shadow-[0_0_24px_rgba(212,175,55,0.2)]">
+        <div id="qrBox" class="mx-auto rounded-2xl p-2 flex items-center justify-center">
             <div id="qrHost" aria-label="رمز QR للطلب"></div>
         </div>
         <p id="qrCodeLabel" class="text-center text-sm text-yellow-400 font-bold mt-2 tracking-wide"></p>
@@ -97,6 +99,57 @@
         let currentOrder = null;
         let readySoundPlayed = false;
         let appSettings = mergeSettings(null);
+
+        const QR_COLOR_GOLD = "#D4AF37";
+        const QR_COLOR_GREEN = "#22C55E";
+
+        function isQrReadyStatus(status) {
+            return status === "ready" || status === "completed";
+        }
+
+        function getQrFillColor(status) {
+            return isQrReadyStatus(status) ? QR_COLOR_GREEN : QR_COLOR_GOLD;
+        }
+
+        function hexToRgb(hex) {
+            const h = String(hex).replace("#", "");
+            return {
+                r: parseInt(h.slice(0, 2), 16),
+                g: parseInt(h.slice(2, 4), 16),
+                b: parseInt(h.slice(4, 6), 16),
+            };
+        }
+
+        /** تلوين مربعات QR يدوياً (المكتبة أحياناً تبقيهم أسود) */
+        function paintQrCanvas(canvas, fillHex) {
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
+            const { r, g, b } = hexToRgb(fillHex);
+            const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const d = img.data;
+            for (let i = 0; i < d.length; i += 4) {
+                const lum = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
+                if (lum < 200) {
+                    d[i] = r;
+                    d[i + 1] = g;
+                    d[i + 2] = b;
+                    d[i + 3] = 255;
+                } else {
+                    d[i] = 255;
+                    d[i + 1] = 255;
+                    d[i + 2] = 255;
+                    d[i + 3] = 255;
+                }
+            }
+            ctx.putImageData(img, 0, 0);
+        }
+
+        function applyQrLabelStyle(status) {
+            const label = document.getElementById("qrCodeLabel");
+            if (!label) return;
+            label.classList.remove("text-yellow-400", "text-emerald-400");
+            label.classList.add(isQrReadyStatus(status) ? "text-emerald-400" : "text-yellow-400");
+        }
 
         function applyTrackingPhrases() {
             const t = document.getElementById("tracking-title");
@@ -198,17 +251,19 @@
                 .replace(/"/g, "&quot;");
         }
 
-        /** QR عالي التباين داخل إطار ذهبي — أسهل للمسح */
+        /** QR: المربعات نفسها ذهبية أو خضراء (ليس الإطار) */
         async function renderQr(order) {
             const url = buildOrderPageUrl(order);
-            const isReady = order.status === "ready" || order.status === "completed";
+            const fillColor = getQrFillColor(order.status);
             const code = order.order_code || `ORD-${String(order.id).slice(0, 8)}`;
 
             document.getElementById("qrCodeLabel").textContent = code;
+            applyQrLabelStyle(order.status);
             qrHost.innerHTML = "";
 
+            const hex = fillColor.replace("#", "");
             const drawFallbackImg = () => {
-                qrHost.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&ecc=H&margin=10&color=000000&bgcolor=FFFFFF&data=${encodeURIComponent(url)}" width="200" height="200" alt="QR" />`;
+                qrHost.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&ecc=H&margin=8&color=${hex}&bgcolor=FFFFFF&data=${encodeURIComponent(url)}" width="200" height="200" alt="QR" style="display:block" />`;
             };
 
             if (typeof QRCode === "undefined" || typeof QRCode.toCanvas !== "function") {
@@ -220,14 +275,12 @@
                 const canvas = document.createElement("canvas");
                 qrHost.appendChild(canvas);
                 await QRCode.toCanvas(canvas, url, {
-                    width: 256,
-                    margin: 2,
+                    width: 280,
+                    margin: 1,
                     errorCorrectionLevel: "H",
-                    color: {
-                        dark: isReady ? "#065f46" : "#000000",
-                        light: "#FFFFFF",
-                    },
+                    color: { dark: "#000000", light: "#FFFFFF" },
                 });
+                paintQrCanvas(canvas, fillColor);
             } catch (err) {
                 console.error("فشل توليد QR:", err);
                 drawFallbackImg();
@@ -255,23 +308,20 @@
             const isPreparing = status === "preparing" || status === "pending";
 
             if (status === "completed") {
-                qrBox.classList.remove("border-yellow-500");
-                qrBox.classList.add("border-emerald-500");
+                applyQrLabelStyle(status);
                 statusText.classList.remove("text-yellow-400");
                 statusText.classList.add("text-emerald-400");
                 statusText.textContent = phrase(appSettings, "tracking_status_completed");
                 subText.textContent = phrase(appSettings, "tracking_sub_completed");
             } else if (status === "ready") {
-                qrBox.classList.remove("border-yellow-500");
-                qrBox.classList.add("border-emerald-500");
+                applyQrLabelStyle(status);
                 statusText.classList.remove("text-yellow-400");
                 statusText.classList.add("text-emerald-400");
                 statusText.textContent = phrase(appSettings, "tracking_status_ready");
                 subText.textContent = phrase(appSettings, "tracking_sub_ready");
                 playReadySound();
             } else if (isPreparing) {
-                qrBox.classList.remove("border-emerald-500");
-                qrBox.classList.add("border-yellow-500");
+                applyQrLabelStyle(status);
                 statusText.classList.remove("text-emerald-400");
                 statusText.classList.add("text-yellow-400");
                 statusText.textContent =

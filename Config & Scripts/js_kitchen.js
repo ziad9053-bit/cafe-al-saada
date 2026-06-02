@@ -6,10 +6,12 @@
 let activeOrderId = null;
 let timerInterval = null;
 let timerStartedAt = null;
+let kitchenTickInterval = null;
 let knownOrderIds = new Set();
 let firstLoad = true;
 let ordersCache = [];
 const LOCAL_PREP_KEY = "kitchen_local_preparing";
+const LOCAL_OPENED_KEY = "kitchen_opened_at";
 
 function getClient() {
     return typeof window.getSupabaseClient === "function" ? window.getSupabaseClient() : null;
@@ -35,10 +37,107 @@ function escapeHtml(str) {
 }
 
 function formatElapsed(ms) {
-    const totalSec = Math.floor(ms / 1000);
+    const totalSec = Math.max(0, Math.floor(ms / 1000));
     const m = Math.floor(totalSec / 60);
     const s = totalSec % 60;
     return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function formatClock(iso) {
+    if (!iso) return "—";
+    try {
+        return new Date(iso).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" });
+    } catch {
+        return "—";
+    }
+}
+
+function sortNewestFirst(list) {
+    return [...list].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+}
+
+function getOpenedAt(order) {
+    if (order.preparing_started_at) return order.preparing_started_at;
+    try {
+        const map = JSON.parse(localStorage.getItem(LOCAL_OPENED_KEY) || "{}");
+        if (map[order.id]) return new Date(map[order.id]).toISOString();
+    } catch (_) {}
+    const prep = getLocalPreparingMap()[order.id];
+    if (prep?.startedAt) return new Date(prep.startedAt).toISOString();
+    return null;
+}
+
+function rememberOpenedAt(orderId) {
+    const map = JSON.parse(localStorage.getItem(LOCAL_OPENED_KEY) || "{}");
+    if (!map[orderId]) {
+        map[orderId] = Date.now();
+        localStorage.setItem(LOCAL_OPENED_KEY, JSON.stringify(map));
+    }
+}
+
+function clearOpenedAt(orderId) {
+    const map = JSON.parse(localStorage.getItem(LOCAL_OPENED_KEY) || "{}");
+    delete map[orderId];
+    localStorage.setItem(LOCAL_OPENED_KEY, JSON.stringify(map));
+}
+
+function renderTimeBadges(order, mode) {
+    const arrived = order.created_at;
+    const opened = getOpenedAt(order);
+
+    if (mode === "pending") {
+        return `
+        <div class="flex flex-wrap gap-1.5 mt-2 text-[11px]">
+            <span class="px-2 py-0.5 rounded-md bg-amber-950/90 text-amber-300 border border-amber-700/40">📥 وصل ${formatClock(arrived)}</span>
+            <span class="px-2 py-0.5 rounded-md bg-zinc-900 text-amber-200 font-mono border border-amber-600/30"
+                data-kitchen-wait="${order.id}" data-since="${arrived || ""}">
+                ⏱ انتظار <span class="wait-el">00:00</span>
+            </span>
+        </div>`;
+    }
+
+    if (mode === "active") {
+        return `
+        <div class="flex flex-wrap gap-1.5 mt-2 text-[11px]">
+            <span class="px-2 py-0.5 rounded-md bg-amber-950/90 text-amber-300 border border-amber-700/40">📥 وصل ${formatClock(arrived)}</span>
+            <span class="px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-300 border border-emerald-700/40">▶ فُتح ${formatClock(opened)}</span>
+            <span class="px-2 py-0.5 rounded-md bg-zinc-900 text-amber-200 font-mono border border-amber-600/30"
+                data-kitchen-prep="${order.id}" data-since="${opened || ""}">
+                ⏱ تجهيز <span class="prep-el">00:00</span>
+            </span>
+        </div>`;
+    }
+
+    if (mode === "pickup") {
+        return `
+        <div class="flex flex-wrap gap-1.5 mt-1 mb-2 text-[10px]">
+            <span class="px-2 py-0.5 rounded bg-zinc-900 text-zinc-400">📥 ${formatClock(arrived)}</span>
+            ${opened ? `<span class="px-2 py-0.5 rounded bg-zinc-900 text-zinc-400">▶ ${formatClock(opened)}</span>` : ""}
+        </div>`;
+    }
+
+    return "";
+}
+
+function tickAllKitchenTimers() {
+    document.querySelectorAll("[data-kitchen-wait]").forEach((el) => {
+        const since = el.dataset.since;
+        const target = el.querySelector(".wait-el");
+        if (!since || !target) return;
+        target.textContent = formatElapsed(Date.now() - new Date(since).getTime());
+    });
+    document.querySelectorAll("[data-kitchen-prep]").forEach((el) => {
+        const since = el.dataset.since;
+        const target = el.querySelector(".prep-el");
+        if (!since || !target) return;
+        target.textContent = formatElapsed(Date.now() - new Date(since).getTime());
+    });
+}
+
+function startKitchenTicks() {
+    tickAllKitchenTimers();
+    if (kitchenTickInterval) clearInterval(kitchenTickInterval);
+    kitchenTickInterval = setInterval(tickAllKitchenTimers, 1000);
 }
 
 function playNewOrderSound() {
@@ -163,11 +262,12 @@ function renderOrderCard(order, type) {
                     <h2 class="text-2xl font-bold text-amber-400">طاولة ${table}</h2>
                     <p class="text-zinc-500 text-sm mt-1">كود: ${code}</p>
                 </div>
-                <div class="text-center">
-                    <p class="text-xs text-zinc-500 mb-1">المؤقت</p>
+                <div class="text-center shrink-0">
+                    <p class="text-xs text-zinc-500 mb-1">مؤقت التجهيز</p>
                     <p id="order-timer" class="text-3xl font-mono font-bold text-amber-400">00:00</p>
                 </div>
             </div>
+            ${renderTimeBadges(order, "active")}
             <ul class="my-4 space-y-2 border-y border-amber-800/30 py-3">${renderItemsList(items)}</ul>
             <button type="button" onclick="markAsReady('${order.id}')"
                 class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-xl font-bold text-lg">
@@ -183,7 +283,8 @@ function renderOrderCard(order, type) {
                 <span class="text-emerald-400 font-bold">📦 جاهز للاستلام</span>
                 <span class="text-zinc-400 text-sm">طاولة ${table}</span>
             </div>
-            <p class="text-zinc-500 text-xs mb-2">${code}</p>
+            <p class="text-zinc-500 text-xs mb-1">${code}</p>
+            ${renderTimeBadges(order, "pickup")}
             <ul class="mb-3 space-y-1">${renderItemsList(items)}</ul>
             <button type="button" onclick="markAsPickedUp('${order.id}')"
                 class="w-full bg-amber-600 hover:bg-amber-500 text-black py-3 rounded-xl font-bold">
@@ -213,7 +314,7 @@ async function loadOrders() {
             .from("orders")
             .select("*")
             .in("status", ["pending", "preparing", "ready"])
-            .order("created_at", { ascending: true }),
+            .order("created_at", { ascending: false }),
         client
             .from("orders")
             .select("*")
@@ -240,10 +341,10 @@ async function loadOrders() {
     orders.forEach((o) => knownOrderIds.add(o.id));
     firstLoad = false;
 
-    const pendingList = orders.filter((o) => o.status === "pending");
+    const pendingList = sortNewestFirst(orders.filter((o) => o.status === "pending"));
     const activeOrder =
         activeOrderId && orders.find((o) => o.id === activeOrderId && o.status === "preparing");
-    const pickupList = orders.filter((o) => o.status === "ready");
+    const pickupList = sortNewestFirst(orders.filter((o) => o.status === "ready"));
     const deliveredList = Array.isArray(deliveredRes.data) ? deliveredRes.data : [];
 
     if (!activeOrder && activeOrderId) closeActive();
@@ -256,16 +357,17 @@ async function loadOrders() {
 
     if (pendingList.length > 0) {
         html += `<div class="mt-4 space-y-2">
-            <h3 class="text-amber-500/80 text-sm font-bold">طلبات جديدة — اضغط لفتح</h3>`;
+            <h3 class="text-amber-500/80 text-sm font-bold">طلبات جديدة — الأحدث في الأعلى</h3>`;
         html += pendingList
             .map(
                 (o) => `
             <button type="button" onclick="openOrder('${o.id}')"
                 class="w-full text-right p-4 rounded-xl border border-amber-700/40 bg-zinc-950 hover:border-amber-500 transition ${activeOrderId ? "" : "animate-pulse"}">
-                <div class="flex justify-between">
+                <div class="flex justify-between items-start gap-2">
                     <span class="text-amber-400 font-bold">🆕 طلب جديد</span>
                     <span class="text-zinc-400 text-sm">طاولة ${escapeHtml(o.table_no ?? "—")}</span>
                 </div>
+                ${renderTimeBadges(o, "pending")}
             </button>`
             )
             .join("");
@@ -297,6 +399,7 @@ async function loadOrders() {
     container.innerHTML = html;
     if (activeOrder) startTimerDisplay(activeOrder);
     else stopTimer();
+    startKitchenTicks();
 }
 
 async function updateOrder(orderId, payload, expectedStatus) {
@@ -335,6 +438,7 @@ async function openOrder(orderId) {
         hideRlsBanner();
     }
 
+    rememberOpenedAt(orderId);
     activeOrderId = orderId;
     localStorage.setItem("kitchen_active_order", orderId);
     await loadOrders();
@@ -356,6 +460,7 @@ async function markAsReady(orderId) {
     }
 
     clearLocalPreparing(orderId);
+    clearOpenedAt(orderId);
     localStorage.removeItem(`kitchen_timer_${orderId}`);
     closeActive();
     await loadOrders();

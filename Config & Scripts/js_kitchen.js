@@ -1,12 +1,11 @@
 /**
- * ملف: js_kitchen.js (النسخة النهائية - متكاملة مع نظام التزامن)
+ * ملف: js_kitchen.js (النسخة النهائية - معالجة صحيحة للبيانات)
  */
 
 async function loadOrders() {
     const container = document.getElementById('orders-container');
     if (!container) return;
 
-    // التحقق من وجود الاتصال قبل المحاولة
     if (!window.supabase) {
         console.warn("جاري انتظار تهيئة Supabase...");
         return;
@@ -28,18 +27,31 @@ async function loadOrders() {
         return;
     }
 
-    container.innerHTML = data.map(order => `
+    container.innerHTML = data.map(order => {
+        // معالجة البيانات: التأكد من تحويل النص إلى مصفوفة
+        let items = order.items;
+        try {
+            if (typeof items === 'string') {
+                items = JSON.parse(items);
+            }
+        } catch (e) {
+            console.error("خطأ في تحليل الأصناف:", e);
+            items = [];
+        }
+        const itemList = Array.isArray(items) ? items : [];
+
+        return `
         <div class="bg-white p-6 rounded-xl shadow-lg border-r-4 border-yellow-500">
             <h2 class="text-xl font-bold">طاولة رقم: ${order.table_no || '---'}</h2>
             <p class="text-sm text-gray-400">كود الطلب: ${order.order_code || '---'}</p>
             <ul class="my-4 text-gray-700">
-                ${Array.isArray(order.items) ? order.items.map(item => `<li>${item.name} × ${item.quantity}</li>`).join('') : '<li>لا توجد أصناف</li>'}
+                ${itemList.length > 0 ? itemList.map(item => `<li>${item.name || 'صنف'} × ${item.quantity || 1}</li>`).join('') : '<li>لا توجد أصناف</li>'}
             </ul>
             <button onclick="markAsDone('${order.id}')" class="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-bold hover:bg-green-700 transition">
                 تم التحضير ✅
             </button>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 }
 
 async function markAsDone(orderId) {

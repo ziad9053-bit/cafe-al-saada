@@ -1,5 +1,5 @@
 /**
- * ملف: js_cart.js (النسخة المثالية - متوافقة مع قاعدة البيانات المحدثة)
+ * ملف: js_cart.js (النسخة النهائية - معتمدة على إعدادات Supabase الذكية)
  */
 
 function getCart() {
@@ -69,14 +69,13 @@ async function confirmOrder() {
     btn.innerText = "جاري الإرسال...";
 
     try {
-        // بما أن القاعدة تملأ كل شيء (total_price, order_code, status) تلقائياً
-        // فنحن نرسل فقط البيانات المطلوبة فعلياً لإتمام الطلب
+        // الإضافة الجديدة: إرسال البيانات فقط والقاعدة تتولى القيم الافتراضية
         const { error } = await window.supabase
             .from('orders')
             .insert([{
                 table_no: tableNo,
                 items: cart
-                // تم حذف status: 'pending' لأن القاعدة تضع 'confirmed' تلقائياً
+                // لا ترسل status أو order_code أو total_price هنا، القاعدة ستضع القيم تلقائياً
             }]);
 
         if (error) throw error;

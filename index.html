@@ -3,36 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مرحباً بك في مقهانا</title>
+    <title>مقهى السعادة</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="Config%20&%20Scripts/language.js"></script>
 </head>
-<body class="bg-gradient-to-br from-amber-50 to-orange-100 min-h-screen flex flex-col items-center justify-center p-4">
+<body class="bg-black text-white min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(212,175,55,0.12)_0%,_transparent_55%)] pointer-events-none"></div>
 
-    <button onclick="changeLanguage()" class="fixed top-4 left-4 z-50 bg-gray-800 text-white px-4 py-2 rounded-full shadow-lg hover:bg-gray-900 transition">
-        🇬🇧 EN / 🇸🇦 AR
+    <button onclick="changeLanguage()" class="fixed top-4 left-4 z-50 text-amber-400 border border-amber-700/50 px-4 py-2 rounded-full text-sm hover:bg-amber-950 transition">
+        EN / AR
     </button>
 
-    <a href="Admin%20Panel/admin-login.html" class="fixed top-4 right-4 z-50 bg-orange-600 text-white px-4 py-2 rounded-full shadow-lg hover:bg-orange-700 transition">
+    <a href="Admin%20Panel/admin-login.html" class="fixed top-4 right-4 z-50 text-amber-400 border border-amber-700/50 px-4 py-2 rounded-full text-sm hover:bg-amber-950 transition">
         ⚙️ دخول المدير
     </a>
 
-    <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center">
-        <h1 class="text-4xl font-bold text-orange-800 mb-4" data-key="welcome">أهلاً بك!</h1>
-        <p class="text-gray-600 mb-8">نحن سعداء بوجودك معنا. استمتع بتجربة قهوة لا تُنسى.</p>
-        
-        <div class="mb-8 p-4 bg-orange-50 rounded-xl text-sm text-orange-700">
-            خدمة سريعة، طعم أصيل، وأجواء مريحة.
-        </div>
+    <div class="relative z-10 w-full max-w-md text-center px-6 py-10 rounded-3xl border border-amber-700/30 bg-zinc-950/80 shadow-2xl">
+        <p class="text-xs tracking-[0.4em] text-amber-600/80 mb-2">CAFE AL-SAADA</p>
+        <h1 class="text-4xl font-bold text-amber-400 mb-3" data-key="welcome">أهلاً بك</h1>
+        <p class="text-zinc-400 mb-8 text-sm leading-relaxed">تجربة قهوة فاخرة بأجواء راقية وخدمة سريعة</p>
 
-        <a href="Front-end/menu.html" data-key="browse" class="block w-full bg-orange-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-orange-700 transition shadow-lg mb-4">
+        <a href="Front-end/menu.html" data-key="browse"
+           class="block w-full bg-amber-600 text-black py-4 rounded-xl font-bold text-lg hover:bg-amber-500 transition shadow-lg shadow-amber-900/30 mb-4">
             تصفح القائمة
         </a>
 
-        <a href="Admin%20Panel/admin-login.html" class="block w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg">
-            👨‍💼 دخول العامل
+        <a href="Admin%20Panel/admin-login.html"
+           class="block w-full border border-amber-700/50 text-amber-300 py-3 rounded-xl font-bold hover:bg-amber-950 transition">
+            👨‍🍳 دخول العامل
         </a>
     </div>
-
 </body>
 </html>

@@ -5,7 +5,7 @@
     <title>رفع صور القائمة</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../Config%20&%20Scripts/dependencies.js"></script>
+    <script src="../Config%20&%20Scripts/dependencies.js?v=6"></script>
 </head>
 <body class="bg-slate-50 p-8">
     <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-sm border">
@@ -31,17 +31,17 @@
                 const fileName = `assets/${Date.now()}_${cleanName}`;
                 
                 // 1. الرفع للـ Storage
-                const { error: uploadError } = await supabase.storage
+                const { error: uploadError } = await window.supabase.storage
                     .from('menu-images')
                     .upload(fileName, file, { upsert: true });
                 
                 if (uploadError) throw uploadError;
 
                 // 2. الحصول على الرابط
-                const { data } = supabase.storage.from('menu-images').getPublicUrl(fileName);
+                const { data } = window.supabase.storage.from('menu-images').getPublicUrl(fileName);
 
                 // 3. حفظ الرابط في قاعدة البيانات
-                const { error: dbError } = await supabase.from('gallery').insert([
+                const { error: dbError } = await window.supabase.from('gallery').insert([
                     { name: file.name, image_url: data.publicUrl }
                 ]);
                 

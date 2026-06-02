@@ -1,6 +1,7 @@
 // [كود محسن لعرض البيانات]
 async function fetchItems() {
-    const { data, error } = await supabase.from('items').select('*');
+    if (!window.supabase) return console.error("Supabase غير جاهز بعد.");
+    const { data, error } = await window.supabase.from('items').select('*');
     if (error) return console.error("خطأ:", error);
 
     const list = document.getElementById('items-list');

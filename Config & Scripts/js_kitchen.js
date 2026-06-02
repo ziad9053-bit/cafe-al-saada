@@ -6,15 +6,17 @@ async function loadOrders() {
     const container = document.getElementById('orders-container');
     if (!container) return;
 
-    if (!window.supabase) {
+    const supabaseClient =
+        typeof window.getSupabaseClient === "function" ? window.getSupabaseClient() : null;
+    if (!supabaseClient) {
         console.warn("جاري انتظار تهيئة Supabase...");
         return;
     }
 
-    const { data, error } = await window.supabase
+    const { data, error } = await supabaseClient
         .from('orders')
         .select('*')
-        .eq('status', 'confirmed') 
+        .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -23,7 +25,7 @@ async function loadOrders() {
     }
 
     if (!data || data.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-center bg-white p-8 rounded-xl shadow">لا توجد طلبات مؤكدة حالياً.</p>';
+        container.innerHTML = '<p class="text-gray-500 text-center bg-white p-8 rounded-xl shadow">لا توجد طلبات جديدة حالياً.</p>';
         return;
     }
 
@@ -55,9 +57,11 @@ async function loadOrders() {
 }
 
 async function markAsDone(orderId) {
-    if (!window.supabase) return alert("النظام غير متصل!");
+    const supabaseClient =
+        typeof window.getSupabaseClient === "function" ? window.getSupabaseClient() : null;
+    if (!supabaseClient) return alert("النظام غير متصل!");
     
-    const { error } = await window.supabase
+    const { error } = await supabaseClient
         .from('orders')
         .update({ status: 'completed' })
         .eq('id', orderId);
@@ -65,13 +69,17 @@ async function markAsDone(orderId) {
     if (error) {
         console.error("خطأ التحديث:", error);
         alert("فشل تحديث حالة الطلب.");
+        return;
     }
+    loadOrders();
 }
 
 function setupRealtime() {
-    if (!window.supabase) return;
+    const supabaseClient =
+        typeof window.getSupabaseClient === "function" ? window.getSupabaseClient() : null;
+    if (!supabaseClient) return;
     
-    window.supabase.channel('kitchen_orders')
+    supabaseClient.channel('kitchen_orders')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, 
         (payload) => {
             console.log("تغيير في قاعدة البيانات:", payload);
@@ -80,14 +88,15 @@ function setupRealtime() {
 }
 
 // تنفيذ النظام عند اكتمال تحميل الصفحة
-window.addEventListener('DOMContentLoaded', () => {
-    // الانتظار حتى يتم تهيئة Supabase بواسطة ملف dependencies.js
-    window.addEventListener('supabaseReady', () => {
-        console.log("Supabase جاهز في صفحة المطبخ، بدء جلب الطلبات...");
-        loadOrders();
-        setupRealtime();
-    });
+function startKitchen() {
+    loadOrders();
+    setupRealtime();
+}
 
-    // تحديث احتياطي كل دقيقة
+window.addEventListener('DOMContentLoaded', () => {
+    if (window.getSupabaseClient?.()) {
+        startKitchen();
+    }
+    window.addEventListener('supabaseReady', startKitchen);
     setInterval(loadOrders, 60000);
 });

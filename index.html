@@ -5,33 +5,151 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مقهى السعادة</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="Config%20&%20Scripts/language.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="Config%20&%20Scripts/dependencies.js?v=6"></script>
+    <script src="Config%20&%20Scripts/js_app_settings.js"></script>
+    <link rel="stylesheet" href="Config%20&%20Scripts/theme.css" />
+    <style>
+        body.has-bottom-nav { padding-bottom: 5.5rem; }
+        #app-bg-layer {
+            position: fixed;
+            inset: 0;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.5;
+            z-index: 0;
+        }
+        .category-row {
+            display: flex;
+            flex-direction: row;
+            direction: ltr;
+            position: relative;
+            height: 8.5rem;
+            border-radius: 1.25rem;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1e1e26 0%, #141418 100%);
+            border: 2px solid rgba(232, 184, 74, 0.5);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+        .category-img-wrap {
+            flex: 0 0 50%;
+            max-width: 50%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0.35rem 0.25rem 0.35rem 0.5rem;
+            background: rgba(0,0,0,0.25);
+        }
+        .category-cover-img {
+            width: 100%;
+            height: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            object-position: left center;
+            pointer-events: none;
+        }
+        .category-row:hover {
+            transform: scale(1.02);
+            border-color: rgba(245, 215, 110, 0.85);
+            box-shadow: 0 6px 28px rgba(232, 184, 74, 0.2);
+        }
+        .category-row::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: linear-gradient(to right, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 48%, rgba(0,0,0,0.82) 100%);
+            pointer-events: none;
+        }
+        .category-row-content {
+            position: relative;
+            z-index: 2;
+            flex: 1;
+            direction: rtl;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 1.25rem 0 0.5rem;
+        }
+        .category-label-title {
+            font-size: 1.45rem;
+            line-height: 1.25;
+        }
+        .category-label-hint {
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+    </style>
 </head>
-<body class="bg-black text-white min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
-    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(212,175,55,0.12)_0%,_transparent_55%)] pointer-events-none"></div>
+<body class="app-theme min-h-screen">
+    <div id="app-bg-layer" class="hidden"></div>
+    <div class="app-vignette absolute inset-0 pointer-events-none z-[1]"></div>
 
-    <button onclick="changeLanguage()" class="fixed top-4 left-4 z-50 text-amber-400 border border-amber-700/50 px-4 py-2 rounded-full text-sm hover:bg-amber-950 transition">
-        EN / AR
-    </button>
+    <button type="button" onclick="location.href='Admin%20Panel/admin-login.html'"
+        class="fixed top-4 left-4 z-50 text-amber-400 border border-amber-700/50 px-3 py-1.5 rounded-full text-xs">⚙️ المدير</button>
+    <a href="Admin%20Panel/admin-login.html"
+        class="fixed top-4 right-4 z-50 text-amber-400 border border-amber-700/50 px-3 py-1.5 rounded-full text-xs">👨‍🍳 العامل</a>
 
-    <a href="Admin%20Panel/admin-login.html" class="fixed top-4 right-4 z-50 text-amber-400 border border-amber-700/50 px-4 py-2 rounded-full text-sm hover:bg-amber-950 transition">
-        ⚙️ دخول المدير
-    </a>
+    <div class="relative z-10 max-w-lg mx-auto px-4 pt-8 pb-4">
+        <header class="text-center mb-8">
+            <p id="home-brand" class="text-xs tracking-[0.45em] gold-text-soft">CAFE AL-SAADA</p>
+            <img id="app-logo" class="hidden w-20 h-20 mx-auto mt-3 mb-3 rounded-full object-contain bg-zinc-900 border-2 border-amber-600/50 shadow-lg" alt="الشعار" />
+            <div id="app-logo-emoji" class="w-20 h-20 mx-auto mt-3 mb-3 rounded-full border-2 border-amber-600/50 bg-zinc-900 flex items-center justify-center text-3xl">☕</div>
+            <h1 id="home-welcome-title" class="text-3xl gold-title">أهلاً بك</h1>
+            <p id="home-welcome-sub" class="gold-text-soft text-sm mt-2 max-w-xs mx-auto leading-relaxed">اختر تصنيفاً واستمتع بتجربة فاخرة</p>
+        </header>
 
-    <div class="relative z-10 w-full max-w-md text-center px-6 py-10 rounded-3xl border border-amber-700/30 bg-zinc-950/80 shadow-2xl">
-        <p class="text-xs tracking-[0.4em] text-amber-600/80 mb-2">CAFE AL-SAADA</p>
-        <h1 class="text-4xl font-bold text-amber-400 mb-3" data-key="welcome">أهلاً بك</h1>
-        <p class="text-zinc-400 mb-8 text-sm leading-relaxed">تجربة قهوة فاخرة بأجواء راقية وخدمة سريعة</p>
-
-        <a href="Front-end/menu.html" data-key="browse"
-           class="block w-full bg-amber-600 text-black py-4 rounded-xl font-bold text-lg hover:bg-amber-500 transition shadow-lg shadow-amber-900/30 mb-4">
-            تصفح القائمة
-        </a>
-
-        <a href="Admin%20Panel/admin-login.html"
-           class="block w-full border border-amber-700/50 text-amber-300 py-3 rounded-xl font-bold hover:bg-amber-950 transition">
-            👨‍🍳 دخول العامل
-        </a>
+        <div class="space-y-4">
+            <a href="Front-end/menu.html?cat=hot" class="category-row" data-category-cover="hot">
+                <div class="category-img-wrap">
+                    <img class="category-cover-img" alt="" hidden />
+                </div>
+                <div class="category-row-content">
+                    <div class="text-right w-full">
+                        <p data-category-hint="hot" class="category-label-hint gold-text-soft mb-1">تصفح</p>
+                        <h2 data-category-label="hot" class="category-label-title gold-title">المشروبات الساخنة</h2>
+                    </div>
+                </div>
+            </a>
+            <a href="Front-end/menu.html?cat=cold" class="category-row" data-category-cover="cold">
+                <div class="category-img-wrap">
+                    <img class="category-cover-img" alt="" hidden />
+                </div>
+                <div class="category-row-content">
+                    <div class="text-right w-full">
+                        <p data-category-hint="cold" class="category-label-hint gold-text-soft mb-1">تصفح</p>
+                        <h2 data-category-label="cold" class="category-label-title gold-title">المشروبات الباردة</h2>
+                    </div>
+                </div>
+            </a>
+            <a href="Front-end/menu.html?cat=dessert" class="category-row" data-category-cover="dessert">
+                <div class="category-img-wrap">
+                    <img class="category-cover-img" alt="" hidden />
+                </div>
+                <div class="category-row-content">
+                    <div class="text-right w-full">
+                        <p data-category-hint="dessert" class="category-label-hint gold-text-soft mb-1">تصفح</p>
+                        <h2 data-category-label="dessert" class="category-label-title gold-title">الحلى</h2>
+                    </div>
+                </div>
+            </a>
+        </div>
     </div>
+
+    <script src="Config%20&%20Scripts/js_categories.js"></script>
+    <script src="Config%20&%20Scripts/js_home.js"></script>
+    <script src="Config%20&%20Scripts/bottom-nav.js"></script>
+    <script>
+        async function bootHome() {
+            const s = await loadAppSettings();
+            applyHomeSettings(s);
+        }
+        window.addEventListener("supabaseReady", bootHome);
+        if (window.getSupabaseClient?.()) bootHome();
+        else applyHomeSettings(mergeSettings(null));
+    </script>
 </body>
 </html>

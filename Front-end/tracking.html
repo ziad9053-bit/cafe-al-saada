@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
     <script src="../Config%20&%20Scripts/dependencies.js?v=6"></script>
+    <script src="../Config%20&%20Scripts/js_app_settings.js"></script>
     <style>
         #qrBox {
             width: 14rem;
@@ -33,15 +34,15 @@
 </head>
 <body class="bg-black text-white min-h-screen flex items-center justify-center p-4 pb-8">
     <div class="w-full max-w-md bg-zinc-900 border border-yellow-600/40 rounded-3xl p-6 shadow-2xl">
-        <h1 class="text-2xl font-bold text-yellow-400 text-center mb-1">شكراً لطلبك</h1>
-        <p id="subText" class="text-zinc-300 mb-5 text-sm text-center">انتظر تحويل اللون إلى الأخضر عند اكتمال التحضير</p>
+        <h1 id="tracking-title" class="text-2xl font-bold text-yellow-400 text-center mb-1">شكراً لطلبك</h1>
+        <p id="subText" class="text-zinc-300 mb-5 text-sm text-center">انتظر تحويل اللون إلى الأخضر عند اكتمال التجهيز</p>
 
         <!-- QR فعلي يُولَّد محلياً ويُمسح بالكاميرا -->
         <div id="qrBox" class="mx-auto rounded-2xl border-4 border-yellow-500 p-2 flex items-center justify-center transition-all duration-500 shadow-[0_0_24px_rgba(212,175,55,0.2)]">
             <div id="qrHost" aria-label="رمز QR للطلب"></div>
         </div>
         <p id="qrCodeLabel" class="text-center text-sm text-yellow-400 font-bold mt-2 tracking-wide"></p>
-        <p class="text-center text-xs text-amber-600/80 mt-1">امسح الرمز لفتح صفحة الطلب</p>
+        <p id="tracking-scan-hint" class="text-center text-xs text-amber-600/80 mt-1">امسح الرمز لفتح صفحة الطلب</p>
 
         <div id="qrNetworkBanner" class="hidden mt-4 p-3 rounded-xl border border-amber-600/50 bg-amber-950/40 text-right text-sm">
             <p class="text-amber-200 font-bold mb-2">⚠️ الرابط الحالي لا يعمل من الجوال</p>
@@ -95,6 +96,15 @@
 
         let currentOrder = null;
         let readySoundPlayed = false;
+        let appSettings = mergeSettings(null);
+
+        function applyTrackingPhrases() {
+            const t = document.getElementById("tracking-title");
+            const scan = document.getElementById("tracking-scan-hint");
+            if (t) t.textContent = phrase(appSettings, "tracking_title");
+            if (scan) scan.textContent = phrase(appSettings, "tracking_scan_hint");
+            if (subText && !currentOrder) subText.textContent = phrase(appSettings, "tracking_sub_pending");
+        }
 
         /** رابط صفحة الطلب — يجب أن يكون عاماً (ليس localhost) */
         function buildOrderPageUrl(order) {
@@ -191,7 +201,7 @@
         /** QR عالي التباين داخل إطار ذهبي — أسهل للمسح */
         async function renderQr(order) {
             const url = buildOrderPageUrl(order);
-            const isReady = order.status === "completed";
+            const isReady = order.status === "ready" || order.status === "completed";
             const code = order.order_code || `ORD-${String(order.id).slice(0, 8)}`;
 
             document.getElementById("qrCodeLabel").textContent = code;
@@ -242,15 +252,22 @@
         }
 
         function updateUiForStatus(status) {
-            const isReady = status === "completed";
             const isPreparing = status === "preparing" || status === "pending";
-            if (isReady) {
+
+            if (status === "completed") {
                 qrBox.classList.remove("border-yellow-500");
                 qrBox.classList.add("border-emerald-500");
                 statusText.classList.remove("text-yellow-400");
                 statusText.classList.add("text-emerald-400");
-                statusText.textContent = "الطلب جاهز ✓";
-                subText.textContent = "يمكنك استلام طلبك الآن — بالهناء والشفاء";
+                statusText.textContent = phrase(appSettings, "tracking_status_completed");
+                subText.textContent = phrase(appSettings, "tracking_sub_completed");
+            } else if (status === "ready") {
+                qrBox.classList.remove("border-yellow-500");
+                qrBox.classList.add("border-emerald-500");
+                statusText.classList.remove("text-yellow-400");
+                statusText.classList.add("text-emerald-400");
+                statusText.textContent = phrase(appSettings, "tracking_status_ready");
+                subText.textContent = phrase(appSettings, "tracking_sub_ready");
                 playReadySound();
             } else if (isPreparing) {
                 qrBox.classList.remove("border-emerald-500");
@@ -258,8 +275,10 @@
                 statusText.classList.remove("text-emerald-400");
                 statusText.classList.add("text-yellow-400");
                 statusText.textContent =
-                    status === "preparing" ? "قيد التجهيز" : "بانتظار استلام الطلب";
-                subText.textContent = "انتظر تحويل اللون إلى الأخضر عند اكتمال التجهيز";
+                    status === "preparing"
+                        ? phrase(appSettings, "tracking_status_preparing")
+                        : phrase(appSettings, "tracking_status_waiting");
+                subText.textContent = phrase(appSettings, "tracking_sub_pending");
             }
             if (currentOrder) {
                 currentOrder.status = status;
@@ -324,7 +343,9 @@
                 .subscribe();
         }
 
-        function init() {
+        async function init() {
+            appSettings = await loadAppSettings();
+            applyTrackingPhrases();
             const saved = window.getCafePublicBase?.();
             if (saved) {
                 document.getElementById("publicBaseInput").value = saved;

@@ -5,45 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>قائمة المشروبات</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script src="../Config%20&%20Scripts/dependencies.js?v=6"></script>
-</head>
-<body class="bg-black text-white pb-28 min-h-screen">
-
-    <header class="p-6 pt-8">
-        <p class="text-center text-amber-600/70 text-xs tracking-widest">CAFE AL-SAADA</p>
-        <h1 class="text-3xl font-bold text-center text-amber-400 mt-1">قائمة المشروبات</h1>
-    </header>
-    
     <script src="../Config%20&%20Scripts/language.js"></script>
-    
-    <main id="menu-items" class="max-w-xl mx-auto grid grid-cols-1 gap-4 px-4">
-        </main>
+    <link rel="stylesheet" href="../Config%20&%20Scripts/theme.css" />
+    <style>body.has-bottom-nav { padding-bottom: 5.5rem; }</style>
+</head>
+<body class="app-theme min-h-screen">
+    <div class="app-vignette fixed inset-0 pointer-events-none z-0"></div>
+    <header class="relative z-10 p-6 pt-8 text-center">
+        <p class="gold-text-soft text-xs tracking-widest">CAFE AL-SAADA</p>
+        <h1 id="page-title" class="text-2xl gold-title mt-1">قائمة المشروبات</h1>
+    </header>
 
-    <nav class="fixed bottom-0 left-0 w-full bg-zinc-950 border-t border-amber-700/40 p-3 flex justify-around items-center shadow-lg z-50">
-        <a href="menu.html?cat=hot" class="text-center text-xs text-amber-200/90">☕ ساخن</a>
-        <a href="menu.html?cat=cold" class="text-center text-xs text-amber-200/90">🧊 بارد</a>
-        <a href="menu.html?cat=dessert" class="text-center text-xs text-amber-200/90">🍰 حلى</a>
-        <a href="cart.html" class="relative text-center text-xs text-amber-400 font-bold">
-            🛒 السلة
-            <span id="cart-badge" class="absolute -top-2 -right-2 bg-amber-500 text-black text-xs rounded-full px-2 min-w-[1.25rem]">0</span>
-        </a>
-    </nav>
+    <main id="menu-items" class="relative z-10 max-w-xl mx-auto grid grid-cols-1 gap-4 px-4">
+        <p class="gold-text-soft text-center py-8">جاري التحميل...</p>
+    </main>
 
-    <a href="../Admin%20Panel/admin-login.html" class="fixed bottom-[4.5rem] left-1/2 -translate-x-1/2 text-[10px] text-zinc-500 hover:text-amber-500 z-40">دخول العامل</a>
-
-    <a href="../Admin%20Panel/admin-login.html" class="fixed top-4 left-4 z-50 text-xs text-amber-500 border border-amber-700/50 px-3 py-1.5 rounded-full">⚙️ المدير</a>
-    <button onclick="changeLanguage()" class="fixed top-4 right-4 z-50 text-xs text-amber-500 border border-amber-700/50 px-3 py-1.5 rounded-full">EN / AR</button>
-
-    <script src="../Config%20&%20Scripts/js_menu.js?v=3"></script>
+    <a href="../Admin%20Panel/admin-login.html"
+        class="fixed bottom-[5.25rem] left-1/2 -translate-x-1/2 text-[10px] text-zinc-600 hover:text-amber-500 z-40">
+        دخول العامل
+    </a>
 
     <script>
-        window.addEventListener('load', () => {
-            console.log("=== تشخيص صفحة القائمة ===");
-            console.log("هل تم تحميل Supabase؟", !!window.supabase);
-        });
+        const cat = new URLSearchParams(window.location.search).get("cat");
+        const titles = {
+            hot: "المشروبات الساخنة",
+            cold: "المشروبات الباردة",
+            dessert: "الحلى",
+        };
+        if (!cat || !titles[cat]) {
+            window.location.replace("../index.html");
+        } else {
+            document.getElementById("page-title").textContent = titles[cat];
+        }
     </script>
+    <script src="../Config%20&%20Scripts/js_categories.js"></script>
+    <script src="../Config%20&%20Scripts/js_menu.js?v=5"></script>
+    <script src="../Config%20&%20Scripts/bottom-nav.js"></script>
 </body>
 </html>

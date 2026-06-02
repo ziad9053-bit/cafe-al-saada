@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../Config%20&%20Scripts/dependencies.js?v=6"></script>
+    <script src="../Config%20&%20Scripts/js_app_settings.js"></script>
     <style>
         body {
             background: radial-gradient(ellipse at top, #1a1508 0%, #000 55%);
@@ -21,8 +22,8 @@
 <body class="min-h-screen text-white p-4 pb-10">
     <div class="max-w-md mx-auto">
         <header class="text-center pt-4 pb-2">
-            <p class="text-xs tracking-[0.35em] text-amber-600/80 uppercase">Cafe Al-Saada</p>
-            <h1 class="text-3xl font-bold gold-text mt-1">مقهى السعادة</h1>
+            <p id="brand-en" class="text-xs tracking-[0.35em] text-amber-600/80 uppercase">Cafe Al-Saada</p>
+            <h1 id="brand-ar" class="text-3xl font-bold gold-text mt-1">مقهى السعادة</h1>
         </header>
 
         <div id="heroWrap" class="mt-4 rounded-2xl overflow-hidden gold-border border-2 hero-glow bg-black aspect-[4/3] relative hidden">
@@ -63,6 +64,14 @@
         const query = new URLSearchParams(window.location.search);
         const orderId = query.get("orderId");
         const orderCode = query.get("code");
+        let appSettings = mergeSettings(null);
+
+        function applyOrderViewBranding() {
+            const en = document.getElementById("brand-en");
+            const ar = document.getElementById("brand-ar");
+            if (en) en.textContent = phrase(appSettings, "order_view_brand_en");
+            if (ar) ar.textContent = phrase(appSettings, "order_view_brand_ar");
+        }
 
         function parseItems(raw) {
             if (!raw) return [];
@@ -87,10 +96,17 @@
             const badge = document.getElementById("statusBadge");
             const readyMsg = document.getElementById("readyMessage");
             const isReady = status === "completed";
-            if (isReady) {
-                badge.textContent = "الطلب جاهز";
+            if (status === "completed") {
+                badge.textContent = "تم الاستلام";
                 badge.className =
                     "inline-block px-4 py-1.5 rounded-full text-sm font-bold border border-emerald-500/60 bg-emerald-950 text-emerald-400";
+                readyMsg.textContent = phrase(appSettings, "order_view_completed_msg");
+                readyMsg.classList.remove("hidden");
+            } else if (status === "ready") {
+                badge.textContent = "جاهز للاستلام";
+                badge.className =
+                    "inline-block px-4 py-1.5 rounded-full text-sm font-bold border border-emerald-500/60 bg-emerald-950 text-emerald-400";
+                readyMsg.textContent = phrase(appSettings, "order_view_ready_msg");
                 readyMsg.classList.remove("hidden");
             } else if (status === "preparing") {
                 badge.textContent = "قيد التجهيز";
@@ -210,11 +226,14 @@
                 .subscribe();
         }
 
-        function init() {
+        async function init() {
+            appSettings = await loadAppSettings();
+            applyOrderViewBranding();
             if (window.getSupabaseClient?.()) loadOrder();
         }
         window.addEventListener("supabaseReady", init);
         if (document.readyState !== "loading") init();
+        else document.addEventListener("DOMContentLoaded", init);
     </script>
 </body>
 </html>

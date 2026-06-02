@@ -5,42 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم المدير</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../Config%20&%20Scripts/js_auth_config.js"></script>
+    <script>
+        if (localStorage.getItem("role") !== "admin") location.href = "admin-login.html";
+    </script>
 </head>
-<body class="bg-slate-50 min-h-screen p-8">
-
-    <div class="max-w-4xl mx-auto">
-        <header class="flex justify-between items-center mb-8 border-b pb-4">
-            <h1 class="text-3xl font-bold text-slate-800">⚙️ لوحة تحكم المدير</h1>
-            <a href="../index.html" class="text-sm text-slate-400 hover:text-orange-600 transition">العودة للموقع</a>
+<body class="bg-black text-white min-h-screen p-6 md:p-10">
+    <div class="max-w-5xl mx-auto">
+        <header class="flex justify-between items-center mb-10 border-b border-amber-800/30 pb-4">
+            <div>
+                <p class="text-amber-600/70 text-xs tracking-widest">ADMIN</p>
+                <h1 class="text-3xl font-bold text-amber-400">لوحة تحكم المدير</h1>
+            </div>
+            <a href="../index.html" class="text-sm text-zinc-500 hover:text-amber-400">العودة للموقع</a>
         </header>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
-            <a href="upload-images.html" class="block bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-500 transition-all hover:shadow-lg">
-                <div class="text-3xl mb-3">🖼️</div>
-                <h2 class="text-lg font-bold text-slate-700">مكتبة الصور</h2>
-                <p class="text-slate-500 mt-2 text-sm">رفع وتخزين الصور قبل استخدامها في القائمة</p>
-            </a>
-            
-            <a href="manage-menu.html" class="block bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-orange-500 transition-all hover:shadow-lg">
-                <div class="text-3xl mb-3">🍽️</div>
-                <h2 class="text-lg font-bold text-slate-700">تعديل القائمة</h2>
-                <p class="text-slate-500 mt-2 text-sm">إضافة أصناف جديدة وتحديد أسعارها</p>
-            </a>
-            
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <div class="text-3xl mb-3">📊</div>
-                <h2 class="text-lg font-bold text-slate-700">التقارير المالية</h2>
-                <p class="text-slate-500 mt-2 text-sm">عرض مبيعات اليوم والإحصائيات</p>
-            </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <div class="text-3xl mb-3">👥</div>
-                <h2 class="text-lg font-bold text-slate-700">إدارة الموظفين</h2>
-                <p class="text-slate-500 mt-2 text-sm">إضافة وتعديل حسابات العاملين</p>
-            </div>
+        <p class="text-amber-500/80 text-sm font-bold mb-3">الأهم — إدارة المحتوى</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+            <a href="upload-images.html"
+                class="block p-6 rounded-2xl border-2 border-amber-600/50 bg-zinc-900 hover:border-amber-500 transition shadow-lg shadow-amber-900/10">
+                <div class="text-4xl mb-3">🖼️</div>
+                <h2 class="text-xl font-bold text-amber-400">مكتبة الصور</h2>
+                <p class="text-zinc-400 mt-2 text-sm">رفع الصور واستخدامها في القائمة والمظهر والشعار</p>
+            </a>
+            <a href="manage-menu.html"
+                class="block p-6 rounded-2xl border-2 border-amber-600/50 bg-zinc-900 hover:border-amber-500 transition shadow-lg shadow-amber-900/10">
+                <div class="text-4xl mb-3">🍽️</div>
+                <h2 class="text-xl font-bold text-amber-400">تعديل القائمة</h2>
+                <p class="text-zinc-400 mt-2 text-sm">إضافة الأصناف والأسعار وربط الصور من المكتبة</p>
+            </a>
+        </div>
+
+        <p class="text-zinc-500 text-sm font-bold mb-3">تخصيص التطبيق</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <a href="admin-appearance.html"
+                class="block p-6 rounded-2xl border border-amber-800/30 bg-zinc-950 hover:border-amber-600/60 transition">
+                <div class="text-3xl mb-3">🎨</div>
+                <h2 class="text-lg font-bold text-amber-300">تعديل عام (المظهر)</h2>
+                <p class="text-zinc-500 mt-2 text-sm">الخلفية، الشعار، صور صفوف الساخن/البارد/الحلى</p>
+            </a>
+            <a href="admin-phrases.html"
+                class="block p-6 rounded-2xl border border-amber-800/30 bg-zinc-950 hover:border-amber-600/60 transition">
+                <div class="text-3xl mb-3">✍️</div>
+                <h2 class="text-lg font-bold text-amber-300">تعديل العبارات</h2>
+                <p class="text-zinc-500 mt-2 text-sm">الترحيب، التتبع، النصوص تحت QR، وغيرها مع موقع كل عبارة</p>
+            </a>
         </div>
     </div>
-
 </body>
 </html>

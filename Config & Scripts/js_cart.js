@@ -1,5 +1,5 @@
 /**
- * ملف: js_cart.js (النسخة النهائية - معتمدة على إعدادات Supabase الذكية)
+ * ملف: js_cart.js (النسخة المحدثة)
  */
 
 function getCart() {
@@ -62,34 +62,32 @@ async function confirmOrder() {
     const tableNo = document.getElementById('tableNo')?.value;
     const cart = getCart();
 
+    // التحقق من البيانات
     if (!tableNo) return alert("يرجى إدخال رقم الطاولة");
     if (cart.length === 0) return alert("السلة فارغة");
 
+    // تعطيل الزر لمنع الضغط المزدوج
     btn.disabled = true;
     btn.innerText = "جاري الإرسال...";
 
-    try {
-        // الإضافة الجديدة: إرسال البيانات فقط والقاعدة تتولى القيم الافتراضية
-        const { error } = await window.supabase
-            .from('orders')
-            .insert([{
-                table_no: tableNo,
-                items: cart
-                // لا ترسل status أو order_code أو total_price هنا، القاعدة ستضع القيم تلقائياً
-            }]);
+    const { error } = await window.supabase
+        .from('orders')
+        .insert([{
+            table_no: parseInt(tableNo),
+            items: cart
+            // لا ترسل order_code ولا status هنا، اتركها للقاعدة لتولدها تلقائياً
+        }]);
 
-        if (error) throw error;
-
-        localStorage.removeItem('cart');
-        alert("تم إرسال طلبك بنجاح!");
-        window.location.href = "index.html";
-
-    } catch (err) {
-        console.error("خطأ Supabase:", err);
-        btn.disabled = false;
+    if (error) {
+        console.error("خطأ Supabase:", error);
+        btn.disabled = false; // إعادة تفعيل الزر في حالة الخطأ
         btn.innerText = "تأكيد الطلب";
-        alert("حدث خطأ أثناء الإرسال: " + (err.message || "يرجى المحاولة لاحقاً"));
+        return alert("خطأ في الإرسال: " + error.message);
     }
+
+    localStorage.removeItem('cart');
+    alert("تم إرسال طلبك بنجاح!");
+    window.location.href = "index.html";
 }
 
 window.addEventListener('DOMContentLoaded', () => {

@@ -1,14 +1,17 @@
 /**
- * ملف: js_kitchen.js (النسخة النهائية المتوافقة مع status: 'confirmed')
+ * ملف: js_kitchen.js (النسخة النهائية - متكاملة مع نظام التزامن)
  */
 
 async function loadOrders() {
     const container = document.getElementById('orders-container');
     if (!container) return;
 
-    if (!window.supabase) return console.error("Supabase غير محمل!");
+    // التحقق من وجود الاتصال قبل المحاولة
+    if (!window.supabase) {
+        console.warn("جاري انتظار تهيئة Supabase...");
+        return;
+    }
 
-    // جلب الطلبات التي حالتها 'confirmed' حصراً حسب إعدادات القاعدة لديك
     const { data, error } = await window.supabase
         .from('orders')
         .select('*')
@@ -40,7 +43,8 @@ async function loadOrders() {
 }
 
 async function markAsDone(orderId) {
-    // تحديث الحالة لـ completed لإخفائها من واجهة المطبخ
+    if (!window.supabase) return alert("النظام غير متصل!");
+    
     const { error } = await window.supabase
         .from('orders')
         .update({ status: 'completed' })
@@ -48,13 +52,13 @@ async function markAsDone(orderId) {
         
     if (error) {
         console.error("خطأ التحديث:", error);
-        alert("فشل تحديث حالة الطلب، يرجى المحاولة مرة أخرى.");
+        alert("فشل تحديث حالة الطلب.");
     }
-    // لا حاجة لاستدعاء loadOrders() هنا، الـ Realtime سيتكفل بالتحديث فوراً
 }
 
 function setupRealtime() {
-    // الاستماع لأي تغيير في جدول الأوردرات
+    if (!window.supabase) return;
+    
     window.supabase.channel('kitchen_orders')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, 
         (payload) => {
@@ -63,8 +67,15 @@ function setupRealtime() {
         }).subscribe();
 }
 
-// تنفيذ أولي
-loadOrders();
-setupRealtime();
-// تحديث احتياطي كل دقيقة
-setInterval(loadOrders, 60000);
+// تنفيذ النظام عند اكتمال تحميل الصفحة
+window.addEventListener('DOMContentLoaded', () => {
+    // الانتظار حتى يتم تهيئة Supabase بواسطة ملف dependencies.js
+    window.addEventListener('supabaseReady', () => {
+        console.log("Supabase جاهز في صفحة المطبخ، بدء جلب الطلبات...");
+        loadOrders();
+        setupRealtime();
+    });
+
+    // تحديث احتياطي كل دقيقة
+    setInterval(loadOrders, 60000);
+});

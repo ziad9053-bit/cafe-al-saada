@@ -1,5 +1,5 @@
 /**
- * ملف: js_cart.js (النسخة المحدثة)
+ * ملف: js_cart.js (النسخة النهائية مع نظام التزامن)
  */
 
 function getCart() {
@@ -57,16 +57,16 @@ function updateQty(index, change) {
 
 async function confirmOrder() {
     const btn = document.getElementById('confirm-btn');
-    if (typeof window.supabase === 'undefined') return alert("جاري تهيئة النظام...");
+    
+    // التحقق النهائي من وجود الاتصال
+    if (!window.supabase) return alert("نظام الطلب غير متصل، يرجى تحديث الصفحة.");
 
     const tableNo = document.getElementById('tableNo')?.value;
     const cart = getCart();
 
-    // التحقق من البيانات
     if (!tableNo) return alert("يرجى إدخال رقم الطاولة");
     if (cart.length === 0) return alert("السلة فارغة");
 
-    // تعطيل الزر لمنع الضغط المزدوج
     btn.disabled = true;
     btn.innerText = "جاري الإرسال...";
 
@@ -75,12 +75,11 @@ async function confirmOrder() {
         .insert([{
             table_no: parseInt(tableNo),
             items: cart
-            // لا ترسل order_code ولا status هنا، اتركها للقاعدة لتولدها تلقائياً
         }]);
 
     if (error) {
         console.error("خطأ Supabase:", error);
-        btn.disabled = false; // إعادة تفعيل الزر في حالة الخطأ
+        btn.disabled = false;
         btn.innerText = "تأكيد الطلب";
         return alert("خطأ في الإرسال: " + error.message);
     }
@@ -91,6 +90,22 @@ async function confirmOrder() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('confirm-btn');
+    if (btn) {
+        // تعطيل الزر حتى يتم تحميل Supabase
+        btn.disabled = true;
+        btn.innerText = "جاري الاتصال...";
+    }
     renderCart();
     document.getElementById('confirm-btn')?.addEventListener('click', confirmOrder);
+});
+
+// النظام الجديد: الاستماع لحدث جاهزية Supabase
+window.addEventListener('supabaseReady', () => {
+    const btn = document.getElementById('confirm-btn');
+    if (btn) {
+        btn.disabled = false;
+        btn.innerText = "تأكيد الطلب";
+    }
+    console.log("تم تفعيل زر الطلب بنجاح.");
 });

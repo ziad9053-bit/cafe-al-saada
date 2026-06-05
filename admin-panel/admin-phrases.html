@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تعديل العبارات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../config-scripts/dependencies.js?v=6"></script>
+    <script src="../config-scripts/js_app_settings.js"></script>
+    <script>
+        if (localStorage.getItem("role") !== "admin") location.href = "admin-login.html";
+    </script>
+</head>
+<body class="bg-black text-white min-h-screen p-4 md:p-8">
+    <div class="max-w-3xl mx-auto">
+        <a href="admin-dashboard.html" class="text-amber-500 text-sm hover:text-amber-300">← لوحة المدير</a>
+        <h1 class="text-2xl font-bold text-amber-400 mt-4 mb-2">تعديل العبارات</h1>
+        <p class="text-zinc-500 text-sm mb-6">كل حقل يوضح أين تظهر العبارة في التطبيق.</p>
+
+        <div id="phrases-form" class="space-y-4"></div>
+
+        <button type="button" id="saveBtn"
+            class="w-full mt-8 py-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-black font-bold text-lg sticky bottom-4">
+            حفظ جميع العبارات
+        </button>
+    </div>
+
+    <!-- نافذة تعديل المظهر الفني (Modal) -->
+    <div id="style-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+        <div class="w-full max-w-md bg-zinc-950 border border-amber-800/40 rounded-3xl p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-6 border-b border-amber-800/20 pb-4">
+                <h2 class="text-xl font-bold text-amber-400">تعديل المظهر والحجم</h2>
+                <button type="button" onclick="closeStyleModal()" class="text-zinc-500 hover:text-white text-2xl">&times;</button>
+            </div>
+            
+            <div class="space-y-5">
+                <div>
+                    <label class="text-xs text-zinc-500 block mb-1">حجم الخط (تكبير/تصغير)</label>
+                    <input id="ui_font_size" type="range" min="12" max="48" class="w-full accent-amber-500 h-2 bg-zinc-900 rounded-lg appearance-none cursor-pointer" />
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-zinc-500 block mb-1">عرض الإطار (Scaling)</label>
+                        <input id="ui_box_width" type="number" min="50" max="800" class="w-full p-3 rounded-xl bg-black border border-zinc-800 text-amber-100 outline-none focus:border-amber-500" />
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-500 block mb-1">طول الإطار (Scaling)</label>
+                        <input id="ui_box_height" type="number" min="50" max="800" class="w-full p-3 rounded-xl bg-black border border-zinc-800 text-amber-100 outline-none focus:border-amber-500" />
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-zinc-500 block mb-1">سمك إطار الصندوق</label>
+                    <input id="ui_border_width" type="number" min="0" max="15" class="w-full p-3 rounded-xl bg-black border border-zinc-800 text-amber-100 outline-none focus:border-amber-500" />
+                </div>
+                <div>
+                    <label class="text-xs text-zinc-500 block mb-1">اللون الذهبي الموحد</label>
+                    <input id="ui_gold_color" type="color" class="w-full h-12 rounded-xl border-2 border-zinc-800 bg-transparent cursor-pointer p-1" />
+                </div>
+                
+                <button type="button" id="modalSaveBtn" class="w-full py-4 rounded-2xl bg-amber-600 hover:bg-amber-500 text-black font-bold text-lg mt-2 transition shadow-lg shadow-amber-900/20">
+                    تطبيق وحفظ المظهر
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PHRASE_FIELDS = [
+            { key: "brand_tagline", label: "اسم العلامة (إنجليزي)", location: "🏠 الرئيسية — السطر فوق الشعار" },
+            { key: "home_slogan", label: "شعار المقهى (Slogan)", location: "🏠 الرئيسية — تحت شعار الصورة" },
+            { key: "home_welcome_title", label: "عنوان الترحيب", location: "🏠 الرئيسية — العنوان الذهبي الكبير" },
+            { key: "home_welcome_sub", label: "نص تحت الترحيب", location: "🏠 الرئيسية — تحت العنوان مباشرة" },
+            { key: "category_row_hint", label: "كلمة «تصفح» على الصفوف", location: "🏠 الرئيسية — أعلى كل صف تصنيف" },
+            { key: "category_hot_label", label: "عنوان صف الساخن", location: "🏠 الرئيسية — داخل صورة المشروبات الساخنة" },
+            { key: "category_cold_label", label: "عنوان صف البارد", location: "🏠 الرئيسية — داخل صورة المشروبات الباردة" },
+            { key: "category_dessert_label", label: "عنوان صف الحلى", location: "🏠 الرئيسية — داخل صورة الحلى" },
+            { key: "tracking_title", label: "عنوان صفحة التتبع", location: "📱 بعد تأكيد الطلب — أعلى رمز QR مباشرة" },
+            { key: "tracking_scan_hint", label: "تلميح مسح QR", location: "📱 صفحة التتبع — السطر الصغير تحت رمز QR" },
+            { key: "tracking_sub_pending", label: "نص تحت QR (قبل الجاهزية)", location: "📱 صفحة التتبع — تحت QR أثناء الانتظار/التجهيز" },
+            { key: "tracking_status_waiting", label: "حالة: بانتظار العامل", location: "📱 صفحة التتبع — سطر «حالة الطلب»" },
+            { key: "tracking_status_preparing", label: "حالة: قيد التجهيز", location: "📱 صفحة التتبع — عندما يبدأ العامل" },
+            { key: "tracking_status_ready", label: "حالة: جاهز للاستلام", location: "📱 صفحة التتبع — عند تم التجهيز (QR أخضر)" },
+            { key: "tracking_sub_ready", label: "نص تحت QR (جاهز)", location: "📱 صفحة التتبع — تحت QR عندما يصبح أخضر" },
+            { key: "tracking_status_completed", label: "حالة: تم الاستلام", location: "📱 صفحة التتبع — بعد تم الاستلام" },
+            { key: "tracking_sub_completed", label: "نص تحت QR (بعد الاستلام)", location: "📱 صفحة التتبع — تحت QR النهائي بعد الاستلام" },
+            { key: "order_view_brand_en", label: "العلامة إنجليزي", location: "🔗 صفحة QR عند المسح — أعلى الصفحة" },
+            { key: "order_view_brand_ar", label: "اسم المقهى عربي", location: "🔗 صفحة QR — العنوان الرئيسي" },
+            { key: "order_view_ready_msg", label: "رسالة الجاهزية", location: "🔗 صفحة QR — عند جاهزية الطلب" },
+            { key: "order_view_completed_msg", label: "رسالة بعد الاستلام", location: "🔗 صفحة QR — بعد تم الاستلام" },
+        ];
+
+        let settings = mergeSettings(null);
+
+        function renderForm() {
+            const form = document.getElementById("phrases-form");
+            form.innerHTML = PHRASE_FIELDS.map(
+                (f) => `
+                <div class="p-4 rounded-xl border border-amber-800/30 bg-zinc-950 hover:border-amber-600/50 transition cursor-pointer group" onclick="openStyleModal()">
+                    <div class="flex flex-wrap justify-between gap-2 mb-2">
+                        <span class="font-bold text-amber-300 text-sm">${f.label}</span>
+                        <span class="text-[11px] text-zinc-500 bg-zinc-900 px-2 py-1 rounded">${f.location}</span>
+                    </div>
+                    <div class="flex gap-2" onclick="event.stopPropagation()">
+                        <input type="text" data-phrase-key="${f.key}" value="${(settings.phrases[f.key] || "").replace(/"/g, "&quot;")}"
+                            class="flex-1 p-3 rounded-lg bg-black border border-amber-800/40 text-white text-sm focus:border-amber-500 outline-none" />
+                        <button type="button" onclick="openStyleModal()" class="shrink-0 w-11 h-11 flex items-center justify-center rounded-lg bg-zinc-900 border border-amber-700/30 text-amber-400 hover:bg-amber-500 hover:text-black transition" title="تعديل المظهر">
+                            🎨
+                        </button>
+                    </div>
+                </div>`
+            ).join("");
+        }
+
+        async function init() {
+            settings = await loadAppSettings(true);
+            renderForm();
+            populateUiControls();
+        }
+
+        function openStyleModal() {
+            document.getElementById('style-modal').classList.remove('hidden');
+        }
+
+        function closeStyleModal() {
+            document.getElementById('style-modal').classList.add('hidden');
+        }
+
+        async function saveAll(source) {
+            const isModal = source === 'modal';
+            
+            // مزامنة العبارات من الحقول
+            document.querySelectorAll("[data-phrase-key]").forEach((input) => {
+                settings.phrases[input.dataset.phraseKey] = input.value;
+            });
+
+            // مزامنة إعدادات المظهر
+            settings.ui = settings.ui || {};
+            const fsEl = document.getElementById('ui_font_size');
+            const bwEl = document.getElementById('ui_box_width');
+            const bhEl = document.getElementById('ui_box_height');
+            const brEl = document.getElementById('ui_border_width');
+            const gcEl = document.getElementById('ui_gold_color');
+
+            settings.ui.text_font_size = fsEl ? parseInt(fsEl.value, 10) : 16;
+            settings.ui.box_width = bwEl ? parseInt(bwEl.value, 10) : 220;
+            settings.ui.box_height = bhEl ? parseInt(bhEl.value, 10) : 220;
+            settings.ui.border_width = brEl ? parseInt(brEl.value, 10) : 1;
+            settings.ui.gold_color = gcEl ? gcEl.value : '#D4AF37';
+
+            const btn = isModal ? document.getElementById("modalSaveBtn") : document.getElementById("saveBtn");
+            const originalText = btn.textContent;
+            
+            btn.disabled = true;
+            btn.textContent = "جاري الحفظ...";
+            
+            try {
+                await saveAppSettings(settings);
+                alert("تم حفظ جميع التغييرات بنجاح!");
+                if (isModal) closeStyleModal();
+            } catch (e) {
+                alert("فشل الحفظ: " + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+
+        document.getElementById("saveBtn").addEventListener("click", () => saveAll('main'));
+        document.getElementById("modalSaveBtn").addEventListener("click", () => saveAll('modal'));
+        
+        // populate UI controls from settings when loaded
+        function populateUiControls() {
+            const ui = settings.ui || {};
+            const fsEl = document.getElementById('ui_font_size');
+            const bwEl = document.getElementById('ui_box_width');
+            const bhEl = document.getElementById('ui_box_height');
+            const brEl = document.getElementById('ui_border_width');
+            const gcEl = document.getElementById('ui_gold_color');
+
+            if (fsEl) fsEl.value = ui.text_font_size || 16;
+            if (bwEl) bwEl.value = ui.box_width || 220;
+            if (bhEl) bhEl.value = ui.box_height || 220;
+            if (brEl) brEl.value = ui.border_width || 1;
+            if (gcEl) gcEl.value = ui.gold_color || '#D4AF37';
+        }
+
+        window.addEventListener("supabaseReady", init);
+        if (window.getSupabaseClient?.()) init();
+    </script>
+</body>
+</html>

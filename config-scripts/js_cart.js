@@ -77,7 +77,7 @@ async function confirmOrder() {
     }
 
     const tableNoEl = document.getElementById("tableNo");
-    const tableNo = tableNoEl ? tableNoEl.value.trim() : "";
+    const tableNo = tableNoEl ? String(tableNoEl.value).trim() : "";
     const cart = getCart();
 
     if (!tableNo) {
@@ -93,9 +93,9 @@ async function confirmOrder() {
     btn.innerText = "جاري الإرسال...";
 
     const total = cart.reduce((sum, item) => {
-        const qty = parseInt(item.quantity) || 0;
-        const price = parseFloat(item.price) || 0;
-        return sum + qty * price;
+        const qty = Number(item.quantity) || 0;
+        const price = Number(item.price) || 0;
+        return Number((sum + (qty * price)).toFixed(2));
     }, 0);
 
     const orderCode = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;

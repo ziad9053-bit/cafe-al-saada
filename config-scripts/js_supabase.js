@@ -12,7 +12,7 @@
     }
 
     // إذا تم التهيئة مسبقًا، لا نعيد الإنشاء
-    if (window.supabaseClient) {
+    if (window.supabaseClient && typeof window.supabaseClient.from === 'function') {
         window.supabase = window.supabaseClient;
         window.dispatchEvent(new Event("supabaseReady"));
         return;

@@ -294,11 +294,10 @@
                 qrHost.appendChild(canvas);
                 await QRCode.toCanvas(canvas, url, {
                     width: 280,
-                    margin: 1,
+                    margin: 2,
                     errorCorrectionLevel: "H",
-                    color: { dark: "#000000", light: "#FFFFFF" },
+                    color: { dark: fillColor, light: "#FFFFFF" }, // استخدام اللون مباشرة من المكتبة لثباته
                 });
-                paintQrCanvas(canvas, fillColor);
             } catch (err) {
                 console.error("فشل توليد QR:", err);
                 drawFallbackImg();
@@ -424,6 +423,13 @@
                 loadOrder();
                 subscribeToOrder();
             }
+            
+            // إعادة التحقق من الطلب عند عودة المستخدم لتبويب المتصفح (مهم للجوال)
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    loadOrder();
+                }
+            });
         }
 
         window.addEventListener("supabaseReady", init);

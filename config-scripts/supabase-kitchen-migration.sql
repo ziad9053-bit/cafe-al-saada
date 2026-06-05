@@ -26,7 +26,14 @@ ON public.orders FOR SELECT TO anon, authenticated USING (true);
 CREATE POLICY "orders_insert_public"
 ON public.orders FOR INSERT TO anon, authenticated WITH CHECK (true);
 
-CREATE POLICY "orders_update_public"
-ON public.orders FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
+-- تحديث السياسة لتكون أكثر أماناً: المستخدم المجهول يضيف فقط، والآدمن/المطبخ يحدث الحالة
+CREATE POLICY "orders_update_admin"
+ON public.orders FOR UPDATE 
+TO authenticated 
+USING (true) 
+WITH CHECK (true);
+
+-- إذا كان المطبخ يستخدم مستخدم "anon"، يفضل تقييد الحقول القابلة للتحديث فقط
+-- مثال: السماح بتحديث الحالة فقط وليس تفاصيل الطلب
 
 -- تحقق: بعد التشغيل جرّب تحديث طلب من Table Editor أو من التطبيق

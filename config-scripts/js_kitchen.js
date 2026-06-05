@@ -8,6 +8,7 @@ let timerInterval = null;
 let timerStartedAt = null;
 let kitchenTickInterval = null;
 let knownOrderIds = new Set();
+let audioCtx = null; // تعريف سياق صوتي عام
 let firstLoad = true;
 let ordersCache = [];
 const LOCAL_PREP_KEY = "kitchen_local_preparing";
@@ -120,18 +121,21 @@ function renderTimeBadges(order, mode) {
 }
 
 function tickAllKitchenTimers() {
-	document.querySelectorAll("[data-kitchen-wait]").forEach((el) => {
+	const now = Date.now();
+	// تحسين الأداء: استخدام حلقة واحدة وتخزين الطابع الزمني لتجنب تكرار المعالجة (Date Parsing)
+	document.querySelectorAll("[data-since]").forEach((el) => {
 		const since = el.dataset.since;
-		const target = el.querySelector(".wait-el");
-		if (!since || !target) return;
-		target.textContent = formatElapsed(Date.now() - new Date(since).getTime());
+		if (!since) return;
+		if (!el._ts) el._ts = new Date(since).getTime();
+		const target = el.querySelector(".wait-el, .prep-el");
+		if (target) target.textContent = formatElapsed(now - el._ts);
 	});
-	document.querySelectorAll("[data-kitchen-prep]").forEach((el) => {
-		const since = el.dataset.since;
-		const target = el.querySelector(".prep-el");
-		if (!since || !target) return;
-		target.textContent = formatElapsed(Date.now() - new Date(since).getTime());
-	});
+
+	// تحديث مؤقت الطلب النشط لضمان التزامن وتقليل عدد العمليات النشطة
+	const activeTimer = document.getElementById("order-timer");
+	if (activeTimer && timerStartedAt) {
+		activeTimer.textContent = formatElapsed(now - timerStartedAt);
+	}
 }
 
 function startKitchenTicks() {
@@ -140,19 +144,34 @@ function startKitchenTicks() {
 	kitchenTickInterval = setInterval(tickAllKitchenTimers, 1000);
 }
 
+// وظيفة لتهيئة وفك قفل الصوت - يجب استدعاؤها عند أول تفاعل للمستخدم
+function unlockAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
 function playNewOrderSound() {
 	try {
-		const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        // إذا لم يتم التفاعل بعد، لن يعمل الصوت على الجوال
+        if (!audioCtx || audioCtx.state === 'suspended') {
+            console.warn("الصوت معلق. يرجى النقر على الصفحة لتفعيله.");
+            return;
+        }
+
 		[0, 0.2].forEach((delay) => {
-			const osc = ctx.createOscillator();
-			const gain = ctx.createGain();
+			const osc = audioCtx.createOscillator();
+			const gain = audioCtx.createGain();
 			osc.connect(gain);
-			gain.connect(ctx.destination);
+			gain.connect(audioCtx.destination);
 			osc.frequency.value = 660;
-			gain.gain.setValueAtTime(0.2, ctx.currentTime + delay);
-			gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + delay + 0.25);
-			osc.start(ctx.currentTime + delay);
-			osc.stop(ctx.currentTime + delay + 0.25);
+			gain.gain.setValueAtTime(0.2, audioCtx.currentTime + delay);
+			gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + delay + 0.25);
+			osc.start(audioCtx.currentTime + delay);
+			osc.stop(audioCtx.currentTime + delay + 0.25);
 		});
 	} catch (_) {}
 }
@@ -228,11 +247,7 @@ function startTimerDisplay(order) {
 	if (!stored) localStorage.setItem(`kitchen_timer_${order.id}`, String(started));
 	timerStartedAt = started;
 
-	const tick = () => {
-		el.textContent = formatElapsed(Date.now() - timerStartedAt);
-	};
-	tick();
-	timerInterval = setInterval(tick, 1000);
+	// يتم تحديث العنصر تلقائياً عبر وظيفة tickAllKitchenTimers الموحدة
 }
 
 function renderItemsList(items) {
@@ -511,5 +526,9 @@ window.markAsPickedUp = markAsPickedUp;
 window.addEventListener("DOMContentLoaded", () => {
 	if (getClient()) startKitchen();
 	window.addEventListener("supabaseReady", startKitchen);
+    
+    // فك قفل الصوت عند أول نقرة في أي مكان بالصفحة
+    document.addEventListener('click', unlockAudio, { once: true });
+    
 	setInterval(loadOrders, 20000);
 });

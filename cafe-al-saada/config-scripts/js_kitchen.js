@@ -120,18 +120,21 @@ function renderTimeBadges(order, mode) {
 }
 
 function tickAllKitchenTimers() {
-	document.querySelectorAll("[data-kitchen-wait]").forEach((el) => {
+	const now = Date.now();
+	// تحسين الأداء: استخدام حلقة واحدة وتخزين الطابع الزمني لتجنب تكرار المعالجة (Date Parsing)
+	document.querySelectorAll("[data-since]").forEach((el) => {
 		const since = el.dataset.since;
-		const target = el.querySelector(".wait-el");
-		if (!since || !target) return;
-		target.textContent = formatElapsed(Date.now() - new Date(since).getTime());
+		if (!since) return;
+		if (!el._ts) el._ts = new Date(since).getTime();
+		const target = el.querySelector(".wait-el, .prep-el");
+		if (target) target.textContent = formatElapsed(now - el._ts);
 	});
-	document.querySelectorAll("[data-kitchen-prep]").forEach((el) => {
-		const since = el.dataset.since;
-		const target = el.querySelector(".prep-el");
-		if (!since || !target) return;
-		target.textContent = formatElapsed(Date.now() - new Date(since).getTime());
-	});
+
+	// تحديث مؤقت الطلب النشط لضمان التزامن وتقليل عدد العمليات النشطة
+	const activeTimer = document.getElementById("order-timer");
+	if (activeTimer && timerStartedAt) {
+		activeTimer.textContent = formatElapsed(now - timerStartedAt);
+	}
 }
 
 function startKitchenTicks() {
@@ -228,11 +231,7 @@ function startTimerDisplay(order) {
 	if (!stored) localStorage.setItem(`kitchen_timer_${order.id}`, String(started));
 	timerStartedAt = started;
 
-	const tick = () => {
-		el.textContent = formatElapsed(Date.now() - timerStartedAt);
-	};
-	tick();
-	timerInterval = setInterval(tick, 1000);
+	// يتم تحديث العنصر تلقائياً عبر وظيفة tickAllKitchenTimers الموحدة
 }
 
 function renderItemsList(items) {

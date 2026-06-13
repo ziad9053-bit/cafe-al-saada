@@ -32,6 +32,34 @@ async function loadMenu() {
         return;
     }
 
+    // Skeleton Loader HTML
+    menuContainer.innerHTML = `
+        <div class="menu-card menu-item p-4 rounded-2xl flex items-center gap-4 animate-pulse">
+            <div class="w-20 h-20 bg-zinc-800 rounded-xl flex-shrink-0"></div>
+            <div class="flex-grow min-w-0 space-y-2">
+                <div class="h-4 bg-zinc-800 rounded w-3/4"></div>
+                <div class="h-4 bg-zinc-800 rounded w-1/4"></div>
+            </div>
+            <div class="w-12 h-12 bg-zinc-800 rounded-full flex-shrink-0"></div>
+        </div>
+        <div class="menu-card menu-item p-4 rounded-2xl flex items-center gap-4 animate-pulse">
+            <div class="w-20 h-20 bg-zinc-800 rounded-xl flex-shrink-0"></div>
+            <div class="flex-grow min-w-0 space-y-2">
+                <div class="h-4 bg-zinc-800 rounded w-3/4"></div>
+                <div class="h-4 bg-zinc-800 rounded w-1/4"></div>
+            </div>
+            <div class="w-12 h-12 bg-zinc-800 rounded-full flex-shrink-0"></div>
+        </div>
+        <div class="menu-card menu-item p-4 rounded-2xl flex items-center gap-4 animate-pulse">
+            <div class="w-20 h-20 bg-zinc-800 rounded-xl flex-shrink-0"></div>
+            <div class="flex-grow min-w-0 space-y-2">
+                <div class="h-4 bg-zinc-800 rounded w-3/4"></div>
+                <div class="h-4 bg-zinc-800 rounded w-1/4"></div>
+            </div>
+            <div class="w-12 h-12 bg-zinc-800 rounded-full flex-shrink-0"></div>
+        </div>
+    `;
+
     try {
         const { data: items, error } = await supabaseClient
             .from("items")

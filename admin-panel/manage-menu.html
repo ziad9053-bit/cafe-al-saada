@@ -2,42 +2,117 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إدارة القائمة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة القائمة - مقهى السعادة</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../config-scripts/dependencies.js?v=6"></script>
+    <script src="../config-scripts/dependencies.js?v=17"></script>
     <script src="../config-scripts/js_categories.js"></script>
     <script src="../config-scripts/js_auth_config.js"></script>
+    <link rel="stylesheet" href="../config-scripts/theme.css?v=17" />
     <script>if (localStorage.getItem("role") !== "admin") location.href = "admin-login.html";</script>
+    <style>
+        .admin-card {
+            background: linear-gradient(135deg, rgba(30, 30, 38, 0.8) 0%, rgba(20, 20, 24, 0.9) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(232, 184, 74, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        .admin-input {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(232, 184, 74, 0.3);
+            color: #f5d76e;
+            transition: all 0.3s ease;
+        }
+        .admin-input:focus {
+            border-color: #e8b84a;
+            box-shadow: 0 0 10px rgba(232, 184, 74, 0.2);
+            outline: none;
+        }
+        .admin-input::placeholder {
+            color: rgba(245, 215, 110, 0.4);
+        }
+        .admin-btn {
+            background: linear-gradient(to bottom, #f5d76e 0%, #e8b84a 100%);
+            color: #1a1a1a;
+            border: none;
+            box-shadow: 0 4px 15px rgba(232, 184, 74, 0.3);
+            transition: all 0.3s ease;
+        }
+        .admin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(232, 184, 74, 0.4);
+            background: linear-gradient(to bottom, #fde28a 0%, #f5d76e 100%);
+        }
+        .gallery-wrap {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(232, 184, 74, 0.2);
+        }
+    </style>
 </head>
-<body class="bg-slate-50 p-8">
-
-    <div class="max-w-2xl mx-auto">
-        <a href="admin-dashboard.html" class="inline-block text-amber-700 text-sm font-semibold mb-2 hover:text-amber-900">← لوحة المدير</a>
-        <a href="edit-items.html" class="inline-block text-amber-600 text-sm font-semibold mb-4 mr-4 hover:text-amber-900">✏️ تعديل الأصناف الموجودة</a>
-    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-        <h1 class="text-2xl font-bold text-slate-800 mb-6">➕ إضافة صنف جديد</h1>
-        
-        <div class="space-y-4">
-            <input type="text" id="name" placeholder="اسم الصنف" class="w-full p-3 border rounded-xl">
-            <input type="number" id="price" placeholder="السعر" class="w-full p-3 border rounded-xl">
-            <label class="block text-sm font-bold text-slate-600 mb-1">التصنيف (يظهر فقط في قسمه)</label>
-            <select id="category" class="w-full p-3 border rounded-xl bg-white">
-                <option value="hot">مشروبات ساخنة</option>
-                <option value="cold">مشروبات باردة</option>
-                <option value="dessert">الحلى</option>
-            </select>
-            <p class="text-xs text-slate-500">يُحفظ كـ hot / cold / dessert لربط الصنف بالقسم الصحيح فقط.</p>
-            
-            <label class="block text-sm font-bold text-slate-600">اختر صورة من المكتبة:</label>
-            <div id="galleryGrid" class="grid grid-cols-4 gap-2 border p-2 rounded-xl h-40 overflow-y-auto">
-                </div>
-            
-            <button onclick="handleSave()" id="saveBtn" class="w-full bg-orange-600 text-white py-3 rounded-xl font-bold hover:bg-orange-700 transition">
-                حفظ الصنف
-            </button>
+<body class="app-theme min-h-screen p-4 md:p-8 relative">
+    <div id="app-bg-layer" class="hidden"></div>
+    <div class="app-vignette absolute inset-0 pointer-events-none z-[1]"></div>
+    
+    <div class="max-w-2xl mx-auto relative z-10 animate-fade-in">
+        <div class="flex items-center gap-4 mb-6">
+            <a href="admin-dashboard.html" class="text-sm px-4 py-2 rounded-full border border-amber-700/50 text-amber-400 hover:bg-amber-950/50 backdrop-blur-sm transition">
+                &larr; لوحة المدير
+            </a>
+            <a href="edit-items.html" class="text-sm px-4 py-2 rounded-full border border-amber-600 bg-amber-950/40 text-amber-300 hover:bg-amber-900/60 backdrop-blur-sm transition flex items-center gap-2">
+                ✏️ تعديل الأصناف الموجودة
+            </a>
         </div>
-    </div>
+
+        <div class="admin-card p-8 rounded-3xl w-full">
+            <div class="flex items-center gap-3 mb-8 border-b border-amber-800/30 pb-4">
+                <div class="w-12 h-12 rounded-full bg-amber-950/50 border border-amber-500/30 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(232,184,74,0.15)]">
+                    ➕
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold gold-title">إضافة صنف جديد</h1>
+                    <p class="text-xs gold-text-soft mt-1">أدخل تفاصيل الصنف الجديد لإضافته لقائمة المقهى</p>
+                </div>
+            </div>
+            
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm gold-text-soft mb-1">اسم الصنف</label>
+                    <input type="text" id="name" placeholder="مثال: لاتيه حار..." class="admin-input w-full p-3 rounded-xl">
+                </div>
+                
+                <div>
+                    <label class="block text-sm gold-text-soft mb-1">السعر (ريال)</label>
+                    <input type="number" id="price" placeholder="مثال: 15.00" class="admin-input w-full p-3 rounded-xl">
+                </div>
+                
+                <div>
+                    <label class="block text-sm gold-text-soft mb-1">التصنيف</label>
+                    <select id="category" class="admin-input w-full p-3 rounded-xl">
+                        <option value="hot" class="bg-zinc-900 text-amber-100">مشروبات ساخنة</option>
+                        <option value="cold" class="bg-zinc-900 text-amber-100">مشروبات باردة</option>
+                        <option value="dessert" class="bg-zinc-900 text-amber-100">الحلى</option>
+                    </select>
+                </div>
+                
+                <div class="pt-2">
+                    <label class="block text-sm gold-text-soft mb-2">اختر صورة من المكتبة</label>
+                    <div id="galleryGrid" class="gallery-wrap grid grid-cols-4 gap-3 p-3 rounded-xl h-48 overflow-y-auto">
+                        <!-- يتم جلب الصور هنا -->
+                    </div>
+                </div>
+                
+                <div class="pt-4 mt-4 border-t border-amber-800/30">
+                    <button onclick="handleSave()" id="saveBtn" class="admin-btn w-full font-bold py-3 rounded-xl text-lg flex items-center justify-center gap-2">
+                        حفظ وإضافة الصنف
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -46,55 +121,72 @@
         async function loadGalleryForMenu() {
             const client = window.getSupabaseClient?.();
             if (!client) return;
-            const { data, error } = await client.from("gallery").select("*");
+            const { data, error } = await client.from("gallery").select("*").order("id", { ascending: false });
             if (error) return console.error("خطأ في جلب الصور:", error);
 
             const grid = document.getElementById("galleryGrid");
             if (!grid) return;
             grid.innerHTML = "";
+            if (!data || data.length === 0) {
+                grid.innerHTML = '<p class="col-span-full text-center text-zinc-500 text-sm py-8">المكتبة فارغة. يرجى رفع صور أولاً.</p>';
+                return;
+            }
+
             (data || []).forEach((img) => {
                 grid.innerHTML += `
                     <img src="${img.image_url}" onclick="selectImage('${img.image_url}', this)" 
-                         class="cursor-pointer rounded border-2 border-transparent hover:border-orange-500 w-full h-16 object-cover">`;
+                         class="cursor-pointer rounded-xl border-2 border-transparent hover:border-amber-500/50 w-full h-20 object-cover shadow-sm bg-black/50 transition">`;
             });
         }
+        
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.getSupabaseClient?.()) loadGalleryForMenu();
+        });
         window.addEventListener("supabaseReady", loadGalleryForMenu);
-        if (window.getSupabaseClient?.()) loadGalleryForMenu();
 
         function selectImage(url, element) {
             selectedImageUrl = url;
-            document.querySelectorAll('#galleryGrid img').forEach(img => img.classList.remove('border-orange-500'));
-            element.classList.add('border-orange-500');
+            document.querySelectorAll('#galleryGrid img').forEach(img => {
+                img.classList.remove('border-amber-400', 'shadow-[0_0_10px_rgba(232,184,74,0.5)]');
+                img.classList.add('border-transparent');
+            });
+            element.classList.remove('border-transparent');
+            element.classList.add('border-amber-400', 'shadow-[0_0_10px_rgba(232,184,74,0.5)]');
         }
 
         async function handleSave() {
-            if (!selectedImageUrl) return alert("يرجى اختيار صورة من المكتبة أولاً");
+            if (!selectedImageUrl) return alert("يرجى اختيار صورة من المكتبة أولاً!");
+
+            const nameEl = document.getElementById('name');
+            const priceEl = document.getElementById('price');
+            
+            if (!nameEl.value.trim()) return alert("يرجى كتابة اسم الصنف.");
+            if (!priceEl.value || parseFloat(priceEl.value) <= 0) return alert("يرجى إدخال سعر صحيح.");
 
             const btn = document.getElementById('saveBtn');
             btn.disabled = true;
-            btn.innerText = "جاري الحفظ...";
+            btn.innerHTML = `جاري الحفظ...`;
 
             try {
                 const client = window.getSupabaseClient?.();
                 if (!client) throw new Error("قاعدة البيانات غير متصلة");
-                const nameEl = document.getElementById('name');
-                const priceEl = document.getElementById('price');
+                
                 const catEl = document.getElementById('category');
                 const { error } = await client.from("items").insert([{
-                    name: nameEl ? nameEl.value : "",
-                    price: priceEl ? parseFloat(priceEl.value) : 0,
+                    name: nameEl.value.trim(),
+                    price: parseFloat(priceEl.value),
                     category: catEl ? catEl.value : "hot",
                     image_url: selectedImageUrl,
                     is_available: true
                 }]);
 
                 if (error) throw error;
-                alert("تمت الإضافة بنجاح!");
+                alert("تمت إضافة الصنف بنجاح للـ " + catEl.options[catEl.selectedIndex].text + "!");
                 location.reload();
             } catch (error) {
                 alert("فشل الحفظ: " + error.message);
                 btn.disabled = false;
-                btn.innerText = "حفظ الصنف";
+                btn.innerHTML = `حفظ وإضافة الصنف`;
             }
         }
     </script>

@@ -115,7 +115,30 @@ async function loadMenu() {
     }
 }
 
-function addToCart(id, name, price, imageUrl) {
+function showToast(message) {
+    const existingToast = document.getElementById("cart-toast");
+    if (existingToast) existingToast.remove();
+
+    const toast = document.createElement("div");
+    toast.id = "cart-toast";
+    toast.className = "fixed top-5 left-1/2 -translate-x-1/2 bg-amber-500 text-black px-6 py-3 rounded-full font-bold shadow-[0_4px_20px_rgba(232,184,74,0.4)] z-[100] flex items-center gap-2 animate-fade-in-down transition-all duration-300";
+    toast.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translate(-50%, -20px)";
+        setTimeout(() => toast.remove(), 300);
+    }, 2500);
+}
+
+function addToCart(id, name, price, imageUrl, buttonElement) {
     let cart = JSON.parse(localStorage.getItem("cart") || "[]");
     const existingItem = cart.find((item) => item.id === id);
     if (existingItem) {
@@ -125,6 +148,24 @@ function addToCart(id, name, price, imageUrl) {
     }
     localStorage.setItem("cart", JSON.stringify(cart));
     updateCartCount();
+    
+    // إظهار رسالة التنبيه (تفاعل بصري)
+    showToast(`تمت إضافة ${name} للسلة`);
+
+    // تأثير حركي خفيف على الزر الذي تم النقر عليه
+    if (buttonElement) {
+        const originalContent = buttonElement.innerHTML;
+        buttonElement.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+        `;
+        buttonElement.classList.add("scale-110", "bg-green-400");
+        setTimeout(() => {
+            buttonElement.innerHTML = originalContent;
+            buttonElement.classList.remove("scale-110", "bg-green-400");
+        }, 800);
+    }
 }
 
 function updateCartCount() {
@@ -145,7 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const btn = e.target.closest(".add-to-cart-btn");
         if (btn) {
             const { id, name, price, image } = btn.dataset;
-            addToCart(id, name, price, image);
+            addToCart(id, name, price, image, btn);
         }
     });
 });

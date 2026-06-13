@@ -2,34 +2,103 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة الدخول</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="../config-scripts/js_auth_config.js?v=16"></script>
+    <script src="../config-scripts/js_auth_config.js?v=17"></script>
+    <link rel="stylesheet" href="../config-scripts/theme.css?v=17" />
+    <style>
+        .login-card {
+            background: linear-gradient(135deg, rgba(30, 30, 38, 0.8) 0%, rgba(20, 20, 24, 0.9) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(232, 184, 74, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        .login-input {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(232, 184, 74, 0.3);
+            color: #f5d76e;
+            transition: all 0.3s ease;
+        }
+        .login-input:focus {
+            border-color: #e8b84a;
+            box-shadow: 0 0 10px rgba(232, 184, 74, 0.2);
+            outline: none;
+        }
+        .login-input::placeholder {
+            color: rgba(245, 215, 110, 0.4);
+        }
+        .login-btn {
+            background: linear-gradient(to bottom, #f5d76e 0%, #e8b84a 100%);
+            color: #1a1a1a;
+            border: none;
+            box-shadow: 0 4px 15px rgba(232, 184, 74, 0.3);
+            transition: all 0.3s ease;
+        }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(232, 184, 74, 0.4);
+            background: linear-gradient(to bottom, #fde28a 0%, #f5d76e 100%);
+        }
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-    <div class="bg-white p-8 rounded-xl shadow-md w-96 text-center">
-        <h2 class="text-xl font-bold mb-4">تسجيل الدخول</h2>
-        <input type="password" id="pass" placeholder="كلمة المرور" class="w-full p-2 border rounded mb-4 focus:outline-none focus:border-orange-500">
-        <button onclick="checkLogin()" class="w-full bg-orange-600 text-white py-2 rounded hover:bg-orange-700 transition">
+<body class="app-theme min-h-screen flex items-center justify-center relative p-4">
+    <div class="absolute inset-0 z-0 bg-black/40"></div>
+    <div class="app-vignette absolute inset-0 pointer-events-none z-[1]"></div>
+    
+    <button type="button" onclick="location.href='../index.html'"
+        class="fixed top-4 right-4 z-50 text-amber-400/80 hover:text-amber-400 border border-amber-700/50 hover:border-amber-500 px-4 py-2 rounded-full text-sm backdrop-blur-sm transition">
+        &rarr; العودة للمقهى
+    </button>
+
+    <div class="login-card p-8 rounded-3xl w-full max-w-sm text-center relative z-10 animate-fade-in">
+        <div class="mb-6 flex flex-col items-center">
+            <div class="w-20 h-20 rounded-full border border-amber-500/30 flex items-center justify-center text-4xl mb-4 bg-black/30 shadow-[0_0_20px_rgba(232,184,74,0.15)]">
+                🔐
+            </div>
+            <h2 class="text-2xl font-bold gold-title">بوابة الدخول</h2>
+            <p class="text-sm gold-text-soft mt-1">أدخل كلمة المرور للمتابعة</p>
+        </div>
+        
+        <input type="password" id="pass" placeholder="كلمة المرور..." class="login-input w-full p-3 rounded-xl mb-6 text-center text-lg tracking-widest" onkeypress="handleEnter(event)">
+        
+        <button onclick="checkLogin()" class="login-btn w-full font-bold py-3 px-4 rounded-xl text-lg flex items-center justify-center gap-2">
             دخول
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+            </svg>
         </button>
     </div>
 
     <script>
+        function handleEnter(e) {
+            if (e.key === 'Enter') {
+                checkLogin();
+            }
+        }
+
         async function checkLogin() {
             const passEl = document.getElementById('pass');
             const pass = passEl ? passEl.value : '';
             
+            if (typeof verifyLogin !== "function") {
+                alert("جاري التحميل، يرجى الانتظار...");
+                return;
+            }
+
             if (verifyLogin(pass, 'admin')) {
                 localStorage.setItem('role', 'admin');
                 window.location.href = "admin-dashboard.html";
             } 
             else if (verifyLogin(pass, 'worker')) {
                 localStorage.setItem('role', 'worker');
-                // هذا هو التعديل الوحيد المطلوب: توجيه العامل للمطبخ مباشرة
                 window.location.href = "../Front-end/kitchen.html?v=16";
             } 
             else {
                 alert("كلمة المرور غير صحيحة!");
+                passEl.value = '';
+                passEl.focus();
             }
         }
     </script>

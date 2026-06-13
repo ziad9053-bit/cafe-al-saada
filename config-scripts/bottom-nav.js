@@ -34,7 +34,7 @@
     const nav = document.createElement("nav");
     nav.id = "app-bottom-nav";
     nav.className =
-        "fixed bottom-0 left-0 w-full bg-zinc-950/90 backdrop-blur-md border-t border-amber-500/30 px-2 py-3 flex justify-around items-center z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)]";
+        "fixed bottom-0 left-0 w-full bg-zinc-950/90 backdrop-blur-md border-t border-amber-400/80 px-2 py-3 flex justify-around items-center z-50 shadow-[0_-5px_25px_rgba(232,184,74,0.5),inset_0_1px_0_rgba(255,255,255,0.1)]";
 
     const svgHome = `<svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>`;
     const svgHot = `<svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" /></svg>`;

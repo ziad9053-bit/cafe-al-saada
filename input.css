@@ -1,3 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@source "./admin-panel";
+@source "./Front-end";
+@source "./config-scripts";
+@source "./";

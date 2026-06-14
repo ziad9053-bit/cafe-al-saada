@@ -27,21 +27,33 @@
         دخول العامل
     </a>
 
-    <script>
-        const cat = new URLSearchParams(window.location.search).get("cat");
-        const titles = {
-            hot: "المشروبات الساخنة",
-            cold: "المشروبات الباردة",
-            dessert: "الحلى",
-        };
-        if (!cat || !titles[cat]) {
-            window.location.replace("../index.html");
-        } else {
-            document.getElementById("page-title").textContent = titles[cat];
-        }
-    </script>
     <script src="../config-scripts/js_categories.js?v=16"></script>
     <script src="../config-scripts/js_menu.js?v=16"></script>
     <script src="../config-scripts/bottom-nav.js?v=16"></script>
+    <script>
+        const cat = new URLSearchParams(window.location.search).get("cat");
+        
+        async function setMenuTitle() {
+            const settings = await window.loadAppSettings();
+            const titles = {
+                hot: phrase(settings, "category_hot_label", "المشروبات الساخنة"),
+                cold: phrase(settings, "category_cold_label", "المشروبات الباردة"),
+                dessert: phrase(settings, "category_dessert_label", "الحلى"),
+                custom1: phrase(settings, "category_custom1_label", "صنف إضافي 1"),
+                custom2: phrase(settings, "category_custom2_label", "صنف إضافي 2"),
+            };
+            
+            if (!cat || !titles[cat]) {
+                window.location.replace("../index.html");
+            } else {
+                document.getElementById("page-title").textContent = titles[cat];
+            }
+        }
+        
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.getSupabaseClient?.()) setMenuTitle();
+        });
+        window.addEventListener("supabaseReady", setMenuTitle);
+    </script>
 </body>
 </html>

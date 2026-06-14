@@ -211,6 +211,9 @@
                 return;
             }
 
+            const currentSettings = await window.loadAppSettings();
+            setupCustomCategoriesForEdit(currentSettings);
+
             const [itemsRes, galleryRes] = await Promise.all([
                 client.from("items").select("*").order("created_at", { ascending: false }),
                 client.from("gallery").select("image_url, name").order("id", { ascending: false }),
@@ -224,6 +227,43 @@
             allItems = itemsRes.data || [];
             galleryImages = galleryRes.data || [];
             renderList();
+        }
+
+        function setupCustomCategoriesForEdit(s) {
+            const filterContainer = document.querySelector('.flex.flex-wrap.gap-2.mb-5');
+            const editSelect = document.getElementById('edit-category');
+            
+            if (s?.ui?.show_custom1 && filterContainer && editSelect) {
+                const name1 = escapeHtml(s.phrases?.category_custom1_label || "صنف إضافي 1");
+                filterContainer.insertAdjacentHTML('beforeend', `<button type="button" data-filter="custom1" class="filter-btn px-4 py-2 rounded-full text-sm border border-zinc-700 text-zinc-400">${name1}</button>`);
+                editSelect.insertAdjacentHTML('beforeend', `<option value="custom1">${name1}</option>`);
+                MENU_CATEGORY_LABELS['custom1'] = name1;
+            }
+            if (s?.ui?.show_custom2 && filterContainer && editSelect) {
+                const name2 = escapeHtml(s.phrases?.category_custom2_label || "صنف إضافي 2");
+                filterContainer.insertAdjacentHTML('beforeend', `<button type="button" data-filter="custom2" class="filter-btn px-4 py-2 rounded-full text-sm border border-zinc-700 text-zinc-400">${name2}</button>`);
+                editSelect.insertAdjacentHTML('beforeend', `<option value="custom2">${name2}</option>`);
+                MENU_CATEGORY_LABELS['custom2'] = name2;
+            }
+            
+            // Re-bind filter buttons since we added new ones dynamically
+            document.querySelectorAll(".filter-btn").forEach((btn) => {
+                // remove old listeners by cloning
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                newBtn.addEventListener("click", () => {
+                    currentFilter = newBtn.dataset.filter;
+                    document.querySelectorAll(".filter-btn").forEach((b) => {
+                        const active = b.dataset.filter === currentFilter;
+                        b.classList.toggle("border-amber-600/50", active);
+                        b.classList.toggle("bg-amber-950", active);
+                        b.classList.toggle("text-amber-300", active);
+                        b.classList.toggle("border-zinc-700", !active);
+                        b.classList.toggle("text-zinc-400", !active);
+                    });
+                    renderList();
+                });
+            });
         }
 
         async function saveEdit() {
@@ -283,20 +323,7 @@
             loadData();
         }
 
-        document.querySelectorAll(".filter-btn").forEach((btn) => {
-            btn.addEventListener("click", () => {
-                currentFilter = btn.dataset.filter;
-                document.querySelectorAll(".filter-btn").forEach((b) => {
-                    const active = b.dataset.filter === currentFilter;
-                    b.classList.toggle("border-amber-600/50", active);
-                    b.classList.toggle("bg-amber-950", active);
-                    b.classList.toggle("text-amber-300", active);
-                    b.classList.toggle("border-zinc-700", !active);
-                    b.classList.toggle("text-zinc-400", !active);
-                });
-                renderList();
-            });
-        });
+        // Initial bind is handled inside setupCustomCategoriesForEdit
 
         document.getElementById("close-modal").addEventListener("click", closeEdit);
         document.getElementById("edit-modal").addEventListener("click", (e) => {

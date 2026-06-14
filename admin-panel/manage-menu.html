@@ -65,6 +65,34 @@
             </a>
         </div>
 
+        <div class="admin-card p-6 rounded-3xl w-full mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-amber-400">تفعيل وتسمية الأصناف الإضافية</h2>
+                <button type="button" id="saveCustomCatsBtn" class="text-xs px-4 py-2 rounded-xl bg-amber-600/90 hover:bg-amber-500 text-black font-bold transition">
+                    حفظ التفعيل
+                </button>
+            </div>
+            <p class="text-xs text-zinc-400 mb-4">يمكنك تفعيل صنفين احتياطيين ليظهرا للزبائن وتحديد أسمائهما بحرية.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Custom 1 -->
+                <div class="p-4 rounded-2xl bg-black/40 border border-amber-800/30">
+                    <label class="flex items-center gap-2 text-sm text-amber-200 mb-3 cursor-pointer">
+                        <input type="checkbox" id="toggle_custom1" class="w-4 h-4 accent-amber-500">
+                        تفعيل الصنف الأول
+                    </label>
+                    <input type="text" id="name_custom1" placeholder="اسم الصنف (مثال: سندويشات)" class="admin-input w-full p-2 text-sm rounded-lg">
+                </div>
+                <!-- Custom 2 -->
+                <div class="p-4 rounded-2xl bg-black/40 border border-amber-800/30">
+                    <label class="flex items-center gap-2 text-sm text-amber-200 mb-3 cursor-pointer">
+                        <input type="checkbox" id="toggle_custom2" class="w-4 h-4 accent-amber-500">
+                        تفعيل الصنف الثاني
+                    </label>
+                    <input type="text" id="name_custom2" placeholder="اسم الصنف (مثال: سناكات)" class="admin-input w-full p-2 text-sm rounded-lg">
+                </div>
+            </div>
+        </div>
+
         <div class="admin-card p-8 rounded-3xl w-full">
             <div class="flex items-center gap-3 mb-8 border-b border-amber-800/30 pb-4">
                 <div class="w-12 h-12 rounded-full bg-amber-950/50 border border-amber-500/30 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(232,184,74,0.15)]">
@@ -117,6 +145,11 @@
 
     <script>
         let selectedImageUrl = "";
+        let currentSettings = null;
+
+        function escapeHtml(s) {
+            return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
 
         async function loadGalleryForMenu() {
             const client = window.getSupabaseClient?.();
@@ -139,10 +172,62 @@
             });
         }
         
-        document.addEventListener("DOMContentLoaded", () => {
-            if (window.getSupabaseClient?.()) loadGalleryForMenu();
+        document.addEventListener("DOMContentLoaded", async () => {
+            if (window.getSupabaseClient?.()) {
+                loadGalleryForMenu();
+                currentSettings = await window.loadAppSettings();
+                setupCustomCategoriesUI(currentSettings);
+            }
         });
-        window.addEventListener("supabaseReady", loadGalleryForMenu);
+        window.addEventListener("supabaseReady", async () => {
+            if (!currentSettings) {
+                loadGalleryForMenu();
+                currentSettings = await window.loadAppSettings();
+                setupCustomCategoriesUI(currentSettings);
+            }
+        });
+
+        function setupCustomCategoriesUI(s) {
+            document.getElementById('toggle_custom1').checked = s?.ui?.show_custom1 || false;
+            document.getElementById('toggle_custom2').checked = s?.ui?.show_custom2 || false;
+            document.getElementById('name_custom1').value = s?.phrases?.category_custom1_label || "";
+            document.getElementById('name_custom2').value = s?.phrases?.category_custom2_label || "";
+
+            const select = document.getElementById('category');
+            if (s?.ui?.show_custom1) {
+                select.insertAdjacentHTML('beforeend', `<option value="custom1" class="bg-zinc-900 text-amber-100">${escapeHtml(s.phrases.category_custom1_label)}</option>`);
+            }
+            if (s?.ui?.show_custom2) {
+                select.insertAdjacentHTML('beforeend', `<option value="custom2" class="bg-zinc-900 text-amber-100">${escapeHtml(s.phrases.category_custom2_label)}</option>`);
+            }
+        }
+
+        document.getElementById('saveCustomCatsBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('saveCustomCatsBtn');
+            btn.disabled = true;
+            btn.textContent = 'جاري الحفظ...';
+            
+            const payload = {
+                phrases: {
+                    category_custom1_label: document.getElementById('name_custom1').value.trim() || "صنف إضافي 1",
+                    category_custom2_label: document.getElementById('name_custom2').value.trim() || "صنف إضافي 2"
+                },
+                ui: {
+                    show_custom1: document.getElementById('toggle_custom1').checked,
+                    show_custom2: document.getElementById('toggle_custom2').checked
+                }
+            };
+
+            try {
+                await window.saveAppSettings(payload);
+                alert("تم حفظ إعدادات الأصناف الإضافية بنجاح!");
+                location.reload();
+            } catch(e) {
+                alert("فشل الحفظ: " + e.message);
+                btn.disabled = false;
+                btn.textContent = 'حفظ التفعيل';
+            }
+        });
 
         function selectImage(url, element) {
             selectedImageUrl = url;

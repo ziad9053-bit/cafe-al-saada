@@ -11,6 +11,8 @@ const DEFAULT_APP_SETTINGS = {
     category_hot_image: "",
     category_cold_image: "",
     category_dessert_image: "",
+    category_custom1_image: "",
+    category_custom2_image: "",
     phrases: {
         brand_tagline: "CAFE AL-SAADA",
         home_slogan: "Welcome to the Distinguished Cafe",
@@ -19,6 +21,8 @@ const DEFAULT_APP_SETTINGS = {
         category_hot_label: "المشروبات الساخنة",
         category_cold_label: "المشروبات الباردة",
         category_dessert_label: "الحلى",
+        category_custom1_label: "صنف إضافي 1",
+        category_custom2_label: "صنف إضافي 2",
         category_row_hint: "تصفح",
         tracking_title: "شكراً لطلبك",
         tracking_scan_hint: "امسح الرمز لفتح صفحة الطلب",
@@ -43,7 +47,9 @@ const DEFAULT_APP_SETTINGS = {
         silver_color: "#C0C0C0",
         gold_on_top: false,
         show_code_text: false, // إخفاء النصوص الكودية (ORD-xxx)
-        border_width: 1 // سمك الإطار
+        border_width: 1, // سمك الإطار
+        show_custom1: false,
+        show_custom2: false
     }
 };
 
@@ -52,9 +58,11 @@ function mergeSettings(raw) {
     if (!raw || typeof raw !== "object") return base;
     if (raw.background_image) base.background_image = raw.background_image;
     if (raw.logo_image) base.logo_image = raw.logo_image;
-    if (raw.category_hot_image) base.category_hot_image = raw.category_hot_image;
-    if (raw.category_cold_image) base.category_cold_image = raw.category_cold_image;
-    if (raw.category_dessert_image) base.category_dessert_image = raw.category_dessert_image;
+    if (raw.category_hot_image !== undefined) base.category_hot_image = raw.category_hot_image;
+    if (raw.category_cold_image !== undefined) base.category_cold_image = raw.category_cold_image;
+    if (raw.category_dessert_image !== undefined) base.category_dessert_image = raw.category_dessert_image;
+    if (raw.category_custom1_image !== undefined) base.category_custom1_image = raw.category_custom1_image;
+    if (raw.category_custom2_image !== undefined) base.category_custom2_image = raw.category_custom2_image;
     if (raw.phrases && typeof raw.phrases === "object") {
         base.phrases = { ...base.phrases, ...raw.phrases };
     }
@@ -215,10 +223,21 @@ function applyHomeSettings(settings) {
     if (sub) sub.textContent = phrase(s, "home_welcome_sub");
 
     const hint = phrase(s, "category_row_hint");
-    [["hot", s.category_hot_image, "category_hot_label"], ["cold", s.category_cold_image, "category_cold_label"], ["dessert", s.category_dessert_image, "category_dessert_label"]].forEach(
+    [
+        ["hot", s.category_hot_image, "category_hot_label"], 
+        ["cold", s.category_cold_image, "category_cold_label"], 
+        ["dessert", s.category_dessert_image, "category_dessert_label"],
+        ["custom1", s.category_custom1_image, "category_custom1_label"],
+        ["custom2", s.category_custom2_image, "category_custom2_label"]
+    ].forEach(
         ([cat, img, labelKey]) => {
             const row = document.querySelector(`[data-category-cover="${cat}"]`);
-            if (row && img) setCategoryRowImage(row, img);
+            if (row) {
+                if (img) setCategoryRowImage(row, img);
+                // إخفاء/إظهار الأصناف المخصصة بناء على الإعدادات
+                if (cat === "custom1") row.classList.toggle("hidden", !(ui.show_custom1));
+                if (cat === "custom2") row.classList.toggle("hidden", !(ui.show_custom2));
+            }
             const labelEl = document.querySelector(`[data-category-label="${cat}"]`);
             if (labelEl) labelEl.textContent = phrase(s, labelKey);
             const hintEl = document.querySelector(`[data-category-hint="${cat}"]`);

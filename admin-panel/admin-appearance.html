@@ -39,6 +39,14 @@
                     <p class="text-amber-400 font-bold mb-2">صورة صف — الحلى</p>
                     <div id="pick-dessert" class="grid grid-cols-4 gap-2 max-h-28 overflow-y-auto"></div>
                 </div>
+                <div class="p-4 rounded-xl border border-amber-800/30 bg-zinc-950">
+                    <p class="text-amber-400 font-bold mb-2">صورة صف — الصنف الإضافي 1</p>
+                    <div id="pick-custom1" class="grid grid-cols-4 gap-2 max-h-28 overflow-y-auto"></div>
+                </div>
+                <div class="p-4 rounded-xl border border-amber-800/30 bg-zinc-950">
+                    <p class="text-amber-400 font-bold mb-2">صورة صف — الصنف الإضافي 2</p>
+                    <div id="pick-custom2" class="grid grid-cols-4 gap-2 max-h-28 overflow-y-auto"></div>
+                </div>
                 <button type="button" id="saveBtn"
                     class="w-full py-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-black font-bold text-lg">
                     حفظ المظهر
@@ -59,6 +67,8 @@
                         <div id="preview-hot" class="h-16 rounded-xl border border-amber-700/40 bg-zinc-900" style="background-size:contain;background-repeat:no-repeat;background-position:center"></div>
                         <div id="preview-cold" class="h-16 rounded-xl border border-amber-700/40 bg-zinc-900" style="background-size:contain;background-repeat:no-repeat;background-position:center"></div>
                         <div id="preview-dessert" class="h-16 rounded-xl border border-amber-700/40 bg-zinc-900" style="background-size:contain;background-repeat:no-repeat;background-position:center"></div>
+                        <div id="preview-custom1" class="h-16 rounded-xl border border-amber-700/40 bg-zinc-900 hidden" style="background-size:contain;background-repeat:no-repeat;background-position:center"></div>
+                        <div id="preview-custom2" class="h-16 rounded-xl border border-amber-700/40 bg-zinc-900 hidden" style="background-size:contain;background-repeat:no-repeat;background-position:center"></div>
                     </div>
                 </div>
             </div>
@@ -75,6 +85,8 @@
             category_hot_image: { grid: "pick-hot", preview: "preview-hot", prop: "category_hot_image" },
             category_cold_image: { grid: "pick-cold", preview: "preview-cold", prop: "category_cold_image" },
             category_dessert_image: { grid: "pick-dessert", preview: "preview-dessert", prop: "category_dessert_image" },
+            category_custom1_image: { grid: "pick-custom1", preview: "preview-custom1", prop: "category_custom1_image" },
+            category_custom2_image: { grid: "pick-custom2", preview: "preview-custom2", prop: "category_custom2_image" },
         };
 
         function updatePreview() {
@@ -91,14 +103,19 @@
                 logo.classList.remove("hidden");
                 document.getElementById("preview-logo-ph").classList.add("hidden");
             }
-            ["hot", "cold", "dessert"].forEach((c) => {
+            ["hot", "cold", "dessert", "custom1", "custom2"].forEach((c) => {
                 const el = document.getElementById(`preview-${c}`);
                 const url = settings[`category_${c}_image`];
-                if (el && url) {
-                    el.style.backgroundImage = `url('${url}')`;
-                    el.style.backgroundSize = "contain";
-                    el.style.backgroundRepeat = "no-repeat";
-                    el.style.backgroundPosition = "center";
+                if (el) {
+                    if (c === "custom1" || c === "custom2") {
+                        el.classList.toggle("hidden", !(settings.ui && settings.ui[`show_${c}`]));
+                    }
+                    if (url) {
+                        el.style.backgroundImage = `url('${url}')`;
+                        el.style.backgroundSize = "contain";
+                        el.style.backgroundRepeat = "no-repeat";
+                        el.style.backgroundPosition = "center";
+                    }
                 }
             });
         }

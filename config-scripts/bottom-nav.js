@@ -25,11 +25,11 @@
     const trackUrl = lastOrderId ? `${trackHref}?orderId=${encodeURIComponent(lastOrderId)}` : trackHref;
     const isTracking = pathLower.includes("tracking.html");
 
-    const activeClass = "font-bold text-amber-400";
-    const activeStyle = "filter: drop-shadow(0 0 8px rgba(232,184,74,0.6));";
-    const idleClass = "text-amber-600/60 hover:text-amber-500/80 transition-colors";
-    const idleStyle = "";
-    const whiteStyle = "text-white/40";
+    const activeClass = "font-bold text-amber-300 scale-105 transition-all";
+    const activeStyle = "filter: drop-shadow(0 0 12px rgba(232,184,74,0.9));";
+    const idleClass = "text-amber-400/80 hover:text-amber-300 hover:scale-105 transition-all";
+    const idleStyle = "filter: drop-shadow(0 0 6px rgba(232,184,74,0.6));";
+    const whiteStyle = "text-white/60 filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));";
 
     const nav = document.createElement("nav");
     nav.id = "app-bottom-nav";

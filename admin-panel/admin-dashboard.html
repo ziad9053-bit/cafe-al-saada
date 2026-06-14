@@ -56,7 +56,69 @@
                 <h2 class="text-lg font-bold text-amber-300">تعديل العبارات</h2>
                 <p class="text-zinc-500 mt-2 text-sm">الترحيب، التتبع، النصوص تحت QR، وغيرها مع موقع كل عبارة</p>
             </a>
+        <p class="text-zinc-500 text-sm font-bold mt-10 mb-3">الأمان والحسابات</p>
+        <div class="block p-6 rounded-2xl border border-amber-800/30 bg-zinc-950 mb-10">
+            <div class="flex items-center gap-3 mb-4 border-b border-amber-800/30 pb-4">
+                <div class="text-3xl">🔐</div>
+                <div>
+                    <h2 class="text-lg font-bold text-amber-300">تغيير كلمات المرور</h2>
+                    <p class="text-zinc-500 text-xs">كلمات المرور تُحفظ وتُشفر تلقائياً في قاعدة البيانات</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Admin Password -->
+                <div>
+                    <label class="block text-xs text-amber-500/70 mb-2">كلمة مرور المدير الجديدة</label>
+                    <div class="flex gap-2">
+                        <input type="password" id="new-admin-pass" placeholder="أدخل الرمز الجديد..." class="w-full p-3 rounded-xl bg-black border border-amber-800/40 focus:border-amber-500 outline-none text-amber-100">
+                        <button onclick="changePass('admin')" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-black font-bold text-sm shrink-0 transition">حفظ</button>
+                    </div>
+                </div>
+                <!-- Worker Password -->
+                <div>
+                    <label class="block text-xs text-amber-500/70 mb-2">كلمة مرور العامل الجديدة</label>
+                    <div class="flex gap-2">
+                        <input type="password" id="new-worker-pass" placeholder="أدخل الرمز الجديد..." class="w-full p-3 rounded-xl bg-black border border-amber-800/40 focus:border-amber-500 outline-none text-amber-100">
+                        <button onclick="changePass('worker')" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-black font-bold text-sm shrink-0 transition">حفظ</button>
+                    </div>
+                </div>
+            </div>
         </div>
+
     </div>
+
+    <!-- Script dependencies for Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../config-scripts/dependencies.js"></script>
+    <script>
+        async function changePass(type) {
+            const input = document.getElementById(type === 'admin' ? 'new-admin-pass' : 'new-worker-pass');
+            const newPass = input.value.trim();
+            
+            if (!newPass) return alert("الرجاء إدخال كلمة مرور جديدة!");
+            if (newPass.length < 4) return alert("يجب أن تتكون من 4 أرقام أو رموز على الأقل!");
+
+            if (!confirm(`هل أنت متأكد من تغيير كلمة مرور الـ ${type === 'admin' ? 'مدير' : 'عامل'}؟\nسيتم تسجيل الخروج فوراً لضمان التحديث.`)) return;
+
+            const btn = input.nextElementSibling;
+            const oldText = btn.innerText;
+            btn.innerText = "جاري الحفظ...";
+            btn.disabled = true;
+
+            try {
+                await saveNewPassword(type, newPass);
+                alert("تم تحديث كلمة المرور وتشفيرها بنجاح! 🔒");
+                input.value = "";
+                // تسجيل الخروج وإعادة التوجيه لصفحة الدخول لضمان الأمان
+                logout();
+                window.location.href = "admin-login.html";
+            } catch (err) {
+                alert("حدث خطأ: " + err.message);
+                btn.innerText = oldText;
+                btn.disabled = false;
+            }
+        }
+    </script>
 </body>
 </html>

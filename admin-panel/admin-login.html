@@ -87,18 +87,31 @@
                 return;
             }
 
-            if (verifyLogin(pass, 'admin')) {
-                localStorage.setItem('role', 'admin');
-                window.location.href = "admin-dashboard.html";
-            } 
-            else if (verifyLogin(pass, 'worker')) {
-                localStorage.setItem('role', 'worker');
-                window.location.href = "../Front-end/kitchen.html?v=16";
-            } 
-            else {
+            // إظهار نص التحميل لأن التشفير والاتصال بالقاعدة يستغرق وقتاً يسيراً
+            const btn = document.querySelector('.login-btn');
+            const originalBtnHtml = btn.innerHTML;
+            btn.innerHTML = 'جاري التحقق...';
+            btn.disabled = true;
+
+            try {
+                if (await verifyLogin(pass, 'admin')) {
+                    window.location.href = "admin-dashboard.html";
+                    return;
+                } 
+                if (await verifyLogin(pass, 'worker')) {
+                    window.location.href = "../Front-end/kitchen.html?v=16";
+                    return;
+                } 
+                
                 alert("كلمة المرور غير صحيحة!");
                 passEl.value = '';
                 passEl.focus();
+            } catch (err) {
+                alert("حدث خطأ في الاتصال!");
+                console.error(err);
+            } finally {
+                btn.innerHTML = originalBtnHtml;
+                btn.disabled = false;
             }
         }
     </script>

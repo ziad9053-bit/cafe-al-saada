@@ -63,14 +63,19 @@ function mergeSettings(raw) {
     return base;
 }
 
+const CACHE_EXPIRY_MS = 60 * 60 * 1000; // 1 ساعة
+
 async function loadAppSettings(forceRemote = false) {
     if (!forceRemote) {
         try {
             const cached = localStorage.getItem(APP_SETTINGS_CACHE);
             if (cached) {
                 const parsed = JSON.parse(cached);
-                // إذا كانت النسخة المخزنة قديمة، تجاوز الكاش
-                if (parsed._version === APP_VERSION) return mergeSettings(parsed);
+                const now = Date.now();
+                // إذا كانت النسخة متطابقة ولم يمر على الكاش أكثر من ساعة، نستخدمه
+                if (parsed._version === APP_VERSION && parsed._timestamp && (now - parsed._timestamp < CACHE_EXPIRY_MS)) {
+                    return mergeSettings(parsed);
+                }
             }
         } catch (_) {}
     }
@@ -92,6 +97,7 @@ async function loadAppSettings(forceRemote = false) {
 
     const merged = mergeSettings(data?.value);
     merged._version = APP_VERSION; // حفظ النسخة في الكاش
+    merged._timestamp = Date.now(); // ختم زمني لحساب دورة الساعة
     try {
         localStorage.setItem(APP_SETTINGS_CACHE, JSON.stringify(merged));
     } catch (_) {}
@@ -111,7 +117,12 @@ async function saveAppSettings(settings) {
     });
 
     if (error) throw error;
+    
+    // تحديث الكاش فوراً عند الحفظ ليكون المتصفح الحالي محدثاً أيضاً
+    payload._version = APP_VERSION;
+    payload._timestamp = Date.now();
     localStorage.setItem(APP_SETTINGS_CACHE, JSON.stringify(payload));
+    
     return payload;
 }
 

@@ -49,3 +49,9 @@ body.app-theme {
     border-color: rgba(245, 215, 110, 0.75);
     box-shadow: 0 6px 28px rgba(232, 184, 74, 0.15);
 }
+
+/* iOS Optimizations */
+a, button, input, select, textarea, .add-to-cart-btn, .filter-btn, .edit-btn, .gallery-pick {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
